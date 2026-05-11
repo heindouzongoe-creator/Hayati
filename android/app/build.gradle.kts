@@ -41,4 +41,10 @@ android {
 
 flutter {
     source = "../.."
+    apply plugin: 'com.google.gms.google-services
 }
+
+
+
+
+[http://127.0.0.1:8000]

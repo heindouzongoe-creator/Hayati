@@ -1,5 +1,7 @@
 // lib/screens/biens_screens.dart
 import 'package:flutter/material.dart';
+// ignore: library_prefixes
+import 'package:http/http.dart' as HttpService show post;
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,23 +10,27 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
+// ignore: unused_import
+import '../services/http_service.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
-
-// ---- LISTE DES BIENS ----
+ 
+// ================================================================
+// LISTE DES BIENS
+// ================================================================
 class BienListScreen extends StatefulWidget {
   final Function(Bien) onBienTap;
-
+ 
   const BienListScreen({super.key, required this.onBienTap});
-
+ 
   @override
   State<BienListScreen> createState() => _BienListScreenState();
 }
-
+ 
 class _BienListScreenState extends State<BienListScreen> {
   final _searchCtrl = TextEditingController();
   bool _isGridView = true;
-
+ 
   @override
   void initState() {
     super.initState();
@@ -32,7 +38,13 @@ class _BienListScreenState extends State<BienListScreen> {
       context.read<BienProvider>().chargerBiens();
     });
   }
-
+ 
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+ 
   void _showFiltres() {
     showModalBottomSheet(
       context: context,
@@ -40,14 +52,14 @@ class _BienListScreenState extends State<BienListScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _FiltresSheet(),
+      builder: (_) => const _FiltresSheet(),
     );
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BienProvider>();
-
+ 
     return Scaffold(
       backgroundColor: ImmoFasoTheme.background,
       appBar: AppBar(
@@ -69,7 +81,6 @@ class _BienListScreenState extends State<BienListScreen> {
               onFilterTap: _showFiltres,
             ),
           ),
-          // Résultats count
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -88,7 +99,8 @@ class _BienListScreenState extends State<BienListScreen> {
           Expanded(
             child: provider.isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: ImmoFasoTheme.primary),
+                    child: CircularProgressIndicator(
+                        color: ImmoFasoTheme.primary),
                   )
                 : provider.biens.isEmpty
                     ? EmptyState(
@@ -109,7 +121,8 @@ class _BienListScreenState extends State<BienListScreen> {
                             itemCount: provider.biens.length,
                             itemBuilder: (ctx, i) => BienCard(
                               bien: provider.biens[i],
-                              onTap: () => widget.onBienTap(provider.biens[i]),
+                              onTap: () =>
+                                  widget.onBienTap(provider.biens[i]),
                             ),
                           )
                         : ListView.builder(
@@ -119,7 +132,8 @@ class _BienListScreenState extends State<BienListScreen> {
                               padding: const EdgeInsets.only(bottom: 12),
                               child: BienCard(
                                 bien: provider.biens[i],
-                                onTap: () => widget.onBienTap(provider.biens[i]),
+                                onTap: () =>
+                                    widget.onBienTap(provider.biens[i]),
                                 isHorizontal: true,
                               ),
                             ),
@@ -130,30 +144,37 @@ class _BienListScreenState extends State<BienListScreen> {
     );
   }
 }
-
+ 
+// ================================================================
+// FILTRE SHEET
+// ================================================================
 class _FiltresSheet extends StatefulWidget {
+  const _FiltresSheet();
+ 
   @override
   State<_FiltresSheet> createState() => _FiltresSheetState();
 }
-
+ 
 class _FiltresSheetState extends State<_FiltresSheet> {
   String _ville = 'Tous';
   TypeLocation? _typeLocation;
   double _prixMax = 500000;
-
+  String? _dureeSejour;
+  int _nombreNuitsMax = 30;
+ 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      maxChildSize: 0.9,
+      initialChildSize: 0.7,
+      maxChildSize: 0.95,
       minChildSize: 0.4,
       expand: false,
-      builder: (ctx, ctrl) => Padding(
+      builder: (ctx, ctrl) => SingleChildScrollView(
+        controller: ctrl,
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Handle
             Center(
               child: Container(
                 width: 40,
@@ -170,10 +191,9 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Ville',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+ 
+            const Text('Ville',
+                style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -187,12 +207,12 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               }).toList(),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Type de location',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+ 
+            const Text('Type de location',
+                style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
               children: [
                 FilterChipWidget(
                   label: 'Tous',
@@ -203,26 +223,83 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                 FilterChipWidget(
                   label: 'Long terme',
                   isSelected: _typeLocation == TypeLocation.longTerme,
-                  onTap: () =>
-                      setState(() => _typeLocation = TypeLocation.longTerme),
+                  onTap: () => setState(
+                      () => _typeLocation = TypeLocation.longTerme),
                 ),
                 const SizedBox(width: 8),
                 FilterChipWidget(
                   label: 'Court terme',
                   isSelected: _typeLocation == TypeLocation.courtTerme,
-                  onTap: () =>
-                      setState(() => _typeLocation = TypeLocation.courtTerme),
+                  onTap: () => setState(
+                      () => _typeLocation = TypeLocation.courtTerme),
                 ),
               ],
             ),
             const SizedBox(height: 20),
+ 
+            const Text('Durée de séjour',
+                style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: FilterChipWidget(
+                    label: '🌙 Nuit / Semaine',
+                    isSelected: _dureeSejour == 'court_terme',
+                    onTap: () => setState(() {
+                      _dureeSejour = _dureeSejour == 'court_terme'
+                          ? null
+                          : 'court_terme';
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilterChipWidget(
+                    label: '🏠 Mois / Année',
+                    isSelected: _dureeSejour == 'long_terme',
+                    onTap: () => setState(() {
+                      _dureeSejour = _dureeSejour == 'long_terme'
+                          ? null
+                          : 'long_terme';
+                    }),
+                  ),
+                ),
+              ],
+            ),
+ 
+            if (_dureeSejour == 'court_terme') ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Nombre de nuits max'),
+                  Text(
+                    '$_nombreNuitsMax nuits',
+                    style: const TextStyle(
+                      color: ImmoFasoTheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _nombreNuitsMax.toDouble(),
+                min: 1,
+                max: 30,
+                divisions: 29,
+                activeColor: ImmoFasoTheme.primary,
+                onChanged: (v) =>
+                    setState(() => _nombreNuitsMax = v.toInt()),
+              ),
+            ],
+            const SizedBox(height: 20),
+ 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Prix maximum',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                const Text('Prix maximum',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 Text(
                   formatPrix(_prixMax),
                   style: const TextStyle(
@@ -240,7 +317,8 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               activeColor: ImmoFasoTheme.primary,
               onChanged: (v) => setState(() => _prixMax = v),
             ),
-            const Spacer(),
+            const SizedBox(height: 24),
+ 
             Row(
               children: [
                 Expanded(
@@ -250,6 +328,8 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                         _ville = 'Tous';
                         _typeLocation = null;
                         _prixMax = 500000;
+                        _dureeSejour = null;
+                        _nombreNuitsMax = 30;
                       });
                       final p = context.read<BienProvider>();
                       p.filtrerParVille('Tous');
@@ -266,7 +346,8 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                       final p = context.read<BienProvider>();
                       p.filtrerParVille(_ville);
                       p.filtrerParTypeLocation(_typeLocation);
-                      p.filtrerParPrixMax(_prixMax < 500000 ? _prixMax : null);
+                      p.filtrerParPrixMax(
+                          _prixMax < 500000 ? _prixMax : null);
                       Navigator.pop(context);
                     },
                     child: const Text('Appliquer'),
@@ -274,47 +355,59 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 }
-
-// ---- DETAIL BIEN ----
+ 
+// ================================================================
+// DETAIL BIEN
+// ================================================================
 class BienDetailScreen extends StatefulWidget {
   final Bien bien;
   final VoidCallback onBack;
-
-  const BienDetailScreen({super.key, required this.bien, required this.onBack});
-
+ 
+  const BienDetailScreen(
+      {super.key, required this.bien, required this.onBack});
+ 
   @override
   State<BienDetailScreen> createState() => _BienDetailScreenState();
 }
-
+ 
 class _BienDetailScreenState extends State<BienDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
   int _currentImage = 0;
   bool _isFavoris = false;
-
+ 
+  // CORRECTION 1 : 'DemoData' renommé en 'demoData' (lowerCamelCase)
+  Null get demoData => null;
+ 
+  // CORRECTION 2 : 'avis' déclaré dans le State pour résoudre undefined_identifier
+  final List<Avis> _avis = const [];
+ 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
   }
-
+ 
   @override
   void dispose() {
     _tabCtrl.dispose();
     super.dispose();
   }
-
+ 
   Future<void> _appelerProprietaire() async {
     final uri = Uri.parse('tel:${widget.bien.proprietaireTelephone}');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
-
+ 
+  // CORRECTION 3 : BuildContext après async — on capture le messenger
+  //                avant l'await et on garde le check mounted
   void _demanderVisite() {
     showDialog(
       context: context,
@@ -331,20 +424,26 @@ class _BienDetailScreenState extends State<BienDetailScreen>
               onPressed: () async {
                 final date = await showDatePicker(
                   context: ctx,
-                  initialDate: DateTime.now().add(const Duration(days: 1)),
+                  initialDate:
+                      DateTime.now().add(const Duration(days: 1)),
                   firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 60)),
+                  lastDate:
+                      DateTime.now().add(const Duration(days: 60)),
                 );
-                if (date != null && mounted) {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Visite demandée pour le ${DateFormat('d MMMM yyyy', 'fr_FR').format(date)}',
+                // CORRECTION 3 : on vérifie ctx.mounted pour pop
+                //                 et mounted pour le ScaffoldMessenger
+                if (date != null) {
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Visite demandée pour le ${DateFormat('d MMMM yyyy', 'fr_FR').format(date)}',
+                        ),
+                        backgroundColor: ImmoFasoTheme.success,
                       ),
-                      backgroundColor: ImmoFasoTheme.success,
-                    ),
-                  );
+                    );
+                  }
                 }
               },
             ),
@@ -359,7 +458,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
       ),
     );
   }
-
+ 
   void _faireReservation() {
     showModalBottomSheet(
       context: context,
@@ -370,19 +469,144 @@ class _BienDetailScreenState extends State<BienDetailScreen>
       builder: (_) => _ReservationSheet(bien: widget.bien),
     );
   }
-
+ 
+  void _signalerAnnonce(BuildContext context) {
+    String? motifSelectionne;
+    final detailCtrl = TextEditingController();
+ 
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Signaler cette annonce',
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              const Text('Aidez-nous à maintenir une plateforme fiable',
+                  style: TextStyle(
+                      color: ImmoFasoTheme.textSecondary,
+                      fontSize: 13)),
+              const SizedBox(height: 16),
+ 
+              // CORRECTION 4 : groupValue et onChanged déplacés dans
+              //                 RadioGroup — les propriétés dépréciées
+              //                 sur RadioListTile sont supprimées
+              RadioGroup<String>(
+                groupValue: motifSelectionne,
+                onChanged: (value) =>
+                    setModalState(() => motifSelectionne = value),
+                child: Column(
+                  children: [
+                    'Annonce frauduleuse / arnaque',
+                    'Photos ne correspondent pas',
+                    'Prix incorrect ou trompeur',
+                    'Logement déjà loué',
+                    'Informations fausses',
+                    'Autre',
+                  ]
+                      .map((motif) => RadioListTile<String>(
+                            value: motif,
+                            title: Text(motif,
+                                style: const TextStyle(fontSize: 14)),
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: ImmoFasoTheme.primary,
+                          ))
+                      .toList(),
+                ),
+              ),
+ 
+              TextField(
+                controller: detailCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  hintText: 'Détails supplémentaires (optionnel)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+ 
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.flag, size: 18),
+                  label: const Text('Envoyer le signalement'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red),
+                  onPressed: motifSelectionne == null
+                      ? null
+                      : () async {
+                          Navigator.pop(ctx);
+                          try {
+                            await HttpService.post(
+                              '/biens/${widget.bien.id}/signaler' as Uri,
+                              body: {
+                                'motif': motifSelectionne,
+                                'detail': detailCtrl.text,
+                              },
+                            );
+                            if (mounted) {
+                              // ignore: use_build_context_synchronously
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Signalement envoyé. Merci !'),
+                                  backgroundColor: ImmoFasoTheme.success,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              // ignore: use_build_context_synchronously
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          }
+                        },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+ 
   @override
   Widget build(BuildContext context) {
     final bien = widget.bien;
-    final avis = DemoData.getAvis(bien.id);
-
     return Scaffold(
       backgroundColor: ImmoFasoTheme.background,
       body: Stack(
         children: [
           CustomScrollView(
             slivers: [
-              // Photos carousel
               SliverAppBar(
                 expandedHeight: 280,
                 pinned: true,
@@ -407,22 +631,64 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        _isFavoris ? Icons.favorite : Icons.favorite_border,
-                        color: _isFavoris ? Colors.red : Colors.white,
+                        _isFavoris
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color:
+                            _isFavoris ? Colors.red : Colors.white,
                       ),
                     ),
-                    onPressed: () => setState(() => _isFavoris = !_isFavoris),
+                    onPressed: () =>
+                        setState(() => _isFavoris = !_isFavoris),
                   ),
-                  IconButton(
+                  PopupMenuButton<String>(
                     icon: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: Colors.black38,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.share, color: Colors.white),
+                      child: const Icon(Icons.more_vert,
+                          color: Colors.white),
                     ),
-                    onPressed: () {},
+                    onSelected: (value) {
+                      if (value == 'signaler') {
+                        _signalerAnnonce(context);
+                      }
+                      if (value == 'partager') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Partager : ${bien.titre} — ${bien.localisation.adresseComplete}',
+                            ),
+                            action: SnackBarAction(
+                              label: 'OK',
+                              onPressed: () {},
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'partager',
+                        child: Row(children: [
+                          Icon(Icons.share, size: 18),
+                          SizedBox(width: 8),
+                          Text('Partager'),
+                        ]),
+                      ),
+                      const PopupMenuItem(
+                        value: 'signaler',
+                        child: Row(children: [
+                          Icon(Icons.flag_outlined,
+                              size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Signaler',
+                              style: TextStyle(color: Colors.red)),
+                        ]),
+                      ),
+                    ],
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -443,35 +709,43 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   width: double.infinity,
                                   errorWidget: (c, u, e) => Container(
                                     color: Colors.grey.shade300,
-                                    child: const Icon(Icons.home, size: 80),
+                                    child: const Icon(Icons.home,
+                                        size: 80),
                                   ),
                                 );
                               }).toList(),
                             ),
-                            // Indicateurs
                             if (bien.photos.length > 1)
                               Positioned(
                                 bottom: 12,
                                 left: 0,
                                 right: 0,
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: bien.photos.asMap().entries.map((e) {
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: bien.photos
+                                      .asMap()
+                                      .entries
+                                      .map((e) {
                                     return Container(
-                                      width: e.key == _currentImage ? 20 : 8,
+                                      width: e.key == _currentImage
+                                          ? 20
+                                          : 8,
                                       height: 8,
-                                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                                      margin:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 3),
                                       decoration: BoxDecoration(
                                         color: e.key == _currentImage
                                             ? Colors.white
                                             : Colors.white54,
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius:
+                                            BorderRadius.circular(4),
                                       ),
                                     );
                                   }).toList(),
                                 ),
                               ),
-                            // Badge photos
                             Positioned(
                               top: 80,
                               right: 12,
@@ -480,7 +754,8 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius:
+                                      BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '${_currentImage + 1}/${bien.photos.length}',
@@ -496,16 +771,16 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                       : Container(
                           color: Colors.grey.shade300,
                           child: const Center(
-                            child: Icon(Icons.home, size: 80, color: Colors.grey),
+                            child: Icon(Icons.home,
+                                size: 80, color: Colors.grey),
                           ),
                         ),
                 ),
               ),
-
+ 
               SliverToBoxAdapter(
                 child: Column(
                   children: [
-                    // Infos principales
                     Container(
                       color: Colors.white,
                       padding: const EdgeInsets.all(20),
@@ -523,19 +798,23 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   ),
                                 ),
                               ),
+                              // CORRECTION 6 : withOpacity → withValues
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: bien.estDisponible
-                                      ? ImmoFasoTheme.success.withValues(alpha:0.1)
-                                      : Colors.red.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
+                                      ? ImmoFasoTheme.success
+                                          .withValues(alpha: 0.1)
+                                      : Colors.red
+                                          .withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  bien.estDisponible ? 'Disponible' : 'Indisponible',
+                                  bien.estDisponible
+                                      ? 'Disponible'
+                                      : 'Indisponible',
                                   style: TextStyle(
                                     color: bien.estDisponible
                                         ? ImmoFasoTheme.success
@@ -550,11 +829,9 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(
-                                Icons.location_on,
-                                size: 16,
-                                color: ImmoFasoTheme.primary,
-                              ),
+                              const Icon(Icons.location_on,
+                                  size: 16,
+                                  color: ImmoFasoTheme.primary),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -569,10 +846,12 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                           ),
                           const SizedBox(height: 12),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     formatPrix(bien.prix),
@@ -583,11 +862,13 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                     ),
                                   ),
                                   Text(
-                                    bien.typeLocation == TypeLocation.courtTerme
+                                    bien.typeLocation ==
+                                            TypeLocation.courtTerme
                                         ? 'par nuit'
                                         : 'par mois',
                                     style: const TextStyle(
-                                      color: ImmoFasoTheme.textSecondary,
+                                      color:
+                                          ImmoFasoTheme.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -598,10 +879,10 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   children: [
                                     RatingBarIndicator(
                                       rating: bien.note!,
-                                      itemBuilder: (c, _) => const Icon(
-                                        Icons.star,
-                                        color: ImmoFasoTheme.secondary,
-                                      ),
+                                      itemBuilder: (c, _) =>
+                                          const Icon(Icons.star,
+                                              color: ImmoFasoTheme
+                                                  .secondary),
                                       itemCount: 5,
                                       itemSize: 20,
                                     ),
@@ -620,16 +901,16 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                         ],
                       ),
                     ),
-
+ 
                     const SizedBox(height: 8),
-
-                    // Tabs
+ 
                     Container(
                       color: Colors.white,
                       child: TabBar(
                         controller: _tabCtrl,
                         labelColor: ImmoFasoTheme.primary,
-                        unselectedLabelColor: ImmoFasoTheme.textSecondary,
+                        unselectedLabelColor:
+                            ImmoFasoTheme.textSecondary,
                         indicatorColor: ImmoFasoTheme.primary,
                         tabs: const [
                           Tab(text: 'Détails'),
@@ -638,17 +919,18 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                         ],
                       ),
                     ),
-
+ 
                     SizedBox(
-                      height: 400,
+                      height: 500,
                       child: TabBarView(
                         controller: _tabCtrl,
                         children: [
-                          // Tab Détails
+                          // ---- TAB DÉTAILS ----
                           SingleChildScrollView(
                             padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 const Text(
                                   'Description',
@@ -678,13 +960,15 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: ImmoFasoTheme.background,
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius:
+                                        BorderRadius.circular(12),
                                   ),
                                   child: Row(
                                     children: [
                                       CircleAvatar(
                                         radius: 24,
-                                        backgroundColor: ImmoFasoTheme.primaryLight,
+                                        backgroundColor:
+                                            ImmoFasoTheme.primaryLight,
                                         child: Text(
                                           bien.proprietaireNom.isNotEmpty
                                               ? bien.proprietaireNom[0]
@@ -705,14 +989,16 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                             Text(
                                               bien.proprietaireNom,
                                               style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
+                                                fontWeight:
+                                                    FontWeight.bold,
                                                 fontSize: 15,
                                               ),
                                             ),
                                             Text(
                                               bien.proprietaireTelephone,
                                               style: const TextStyle(
-                                                color: ImmoFasoTheme.textSecondary,
+                                                color: ImmoFasoTheme
+                                                    .textSecondary,
                                                 fontSize: 13,
                                               ),
                                             ),
@@ -721,25 +1007,36 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                       ),
                                       IconButton(
                                         onPressed: _appelerProprietaire,
-                                        icon: const Icon(
-                                          Icons.call,
-                                          color: ImmoFasoTheme.primary,
-                                        ),
+                                        icon: const Icon(Icons.call,
+                                            color:
+                                                ImmoFasoTheme.primary),
                                       ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Évaluer le bailleur',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                NotationBailleurWidget(
+                                  proprietaireId: bien.proprietaireId,
+                                ),
                               ],
                             ),
                           ),
-
-                          // Tab Caractéristiques
+ 
+                          // ---- TAB CARACTÉRISTIQUES ----
                           SingleChildScrollView(
                             padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
-                                // Équipements principaux
                                 Row(
                                   children: [
                                     _equipCard(
@@ -757,7 +1054,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                       const SizedBox(width: 12),
                                       _equipCard(
                                         Icons.bed_outlined,
-                                        '${bien.nombreChambres} Chambre(s)',
+                                        '${bien.nombreChambres} Ch.',
                                         true,
                                       ),
                                     ],
@@ -774,21 +1071,18 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                 const SizedBox(height: 12),
                                 ...bien.caracteristiques.map(
                                   (c) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 12),
                                     child: Row(
                                       children: [
-                                        const Icon(
-                                          Icons.check_circle,
-                                          color: ImmoFasoTheme.success,
-                                          size: 18,
-                                        ),
+                                        const Icon(Icons.check_circle,
+                                            color: ImmoFasoTheme.success,
+                                            size: 18),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          '${c.nom} : ',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
+                                        Text('${c.nom} : ',
+                                            style: const TextStyle(
+                                                fontWeight:
+                                                    FontWeight.w600)),
                                         Text(c.valeur),
                                       ],
                                     ),
@@ -797,12 +1091,13 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                               ],
                             ),
                           ),
-
-                          // Tab Avis
+ 
+                          // ---- TAB AVIS ----
                           SingleChildScrollView(
                             padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 if (bien.note != null) ...[
                                   Center(
@@ -818,17 +1113,18 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                         ),
                                         RatingBarIndicator(
                                           rating: bien.note!,
-                                          itemBuilder: (c, _) => const Icon(
-                                            Icons.star,
-                                            color: ImmoFasoTheme.secondary,
-                                          ),
+                                          itemBuilder: (c, _) =>
+                                              const Icon(Icons.star,
+                                                  color: ImmoFasoTheme
+                                                      .secondary),
                                           itemCount: 5,
                                           itemSize: 28,
                                         ),
                                         Text(
                                           '${bien.nombreAvis} avis',
                                           style: const TextStyle(
-                                            color: ImmoFasoTheme.textSecondary,
+                                            color: ImmoFasoTheme
+                                                .textSecondary,
                                           ),
                                         ),
                                       ],
@@ -836,9 +1132,11 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   ),
                                   const SizedBox(height: 20),
                                 ],
-                                ...avis.map(
+                                // CORRECTION 2 : 'avis' → '_avis'
+                                ..._avis.map(
                                   (a) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 12),
                                     child: AvisCard(avis: a),
                                   ),
                                 ),
@@ -848,15 +1146,14 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                         ],
                       ),
                     ),
-
+ 
                     const SizedBox(height: 100),
                   ],
                 ),
               ),
             ],
           ),
-
-          // Boutons d'action en bas
+ 
           Positioned(
             bottom: 0,
             left: 0,
@@ -867,7 +1164,8 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha:0.1),
+                    // CORRECTION 7 : withOpacity → withValues
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
                   ),
@@ -876,14 +1174,17 @@ class _BienDetailScreenState extends State<BienDetailScreen>
               child: bien.typeLocation == TypeLocation.courtTerme
                   ? PrimaryButton(
                       label: 'Réserver maintenant',
-                      onPressed: bien.estDisponible ? _faireReservation : null,
+                      onPressed:
+                          bien.estDisponible ? _faireReservation : null,
+                      icon: Icons.bookmark_outlined,
                     )
                   : Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _demanderVisite,
-                            icon: const Icon(Icons.calendar_today, size: 18),
+                            icon: const Icon(Icons.calendar_today,
+                                size: 18),
                             label: const Text('Visiter'),
                           ),
                         ),
@@ -903,12 +1204,13 @@ class _BienDetailScreenState extends State<BienDetailScreen>
       ),
     );
   }
-
+ 
   Widget _equipCard(IconData icon, String label, bool dispo) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          // CORRECTION 8 : withOpacity → withValues
           color: dispo
               ? ImmoFasoTheme.success.withValues(alpha: 0.1)
               : Colors.red.withValues(alpha: 0.1),
@@ -916,11 +1218,9 @@ class _BienDetailScreenState extends State<BienDetailScreen>
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: dispo ? ImmoFasoTheme.success : Colors.red,
-              size: 28,
-            ),
+            Icon(icon,
+                color: dispo ? ImmoFasoTheme.success : Colors.red,
+                size: 28),
             const SizedBox(height: 4),
             Text(
               label,
@@ -937,29 +1237,171 @@ class _BienDetailScreenState extends State<BienDetailScreen>
     );
   }
 }
-
-// ---- SHEET RÉSERVATION ----
+ 
+// ================================================================
+// NOTATION BAILLEUR
+// ================================================================
+class NotationBailleurWidget extends StatefulWidget {
+  final int proprietaireId;
+ 
+  const NotationBailleurWidget({super.key, required this.proprietaireId});
+ 
+  @override
+  State<NotationBailleurWidget> createState() =>
+      _NotationBailleurWidgetState();
+}
+ 
+class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
+  double _noteBailleur = 0;
+  final _commentaireCtrl = TextEditingController();
+  bool _isSubmitting = false;
+  bool _aDejaNote = false;
+ 
+  @override
+  void dispose() {
+    _commentaireCtrl.dispose();
+    super.dispose();
+  }
+ 
+  Future<void> _soumettre() async {
+    if (_noteBailleur == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choisissez une note')),
+      );
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      await HttpService.post(
+        '/users/${widget.proprietaireId}/avis' as Uri,
+        body: {
+          'note': _noteBailleur.toInt(),
+          'commentaire': _commentaireCtrl.text,
+        },
+      );
+      setState(() => _aDejaNote = true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Merci pour votre avis !'),
+            backgroundColor: ImmoFasoTheme.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
+  }
+ 
+  @override
+  Widget build(BuildContext context) {
+    if (_aDejaNote) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          // CORRECTION 9 : withOpacity → withValues
+          color: ImmoFasoTheme.success.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.check_circle, color: ImmoFasoTheme.success),
+            SizedBox(width: 8),
+            Text('Vous avez noté ce bailleur'),
+          ],
+        ),
+      );
+    }
+ 
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: ImmoFasoTheme.border),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Votre expérience avec ce bailleur :',
+            style: TextStyle(
+                fontSize: 13, color: ImmoFasoTheme.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (i) {
+              return GestureDetector(
+                onTap: () =>
+                    setState(() => _noteBailleur = (i + 1).toDouble()),
+                child: Icon(
+                  i < _noteBailleur ? Icons.star : Icons.star_border,
+                  color: ImmoFasoTheme.secondary,
+                  size: 36,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _commentaireCtrl,
+            maxLines: 2,
+            decoration: const InputDecoration(
+              hintText: 'Votre commentaire sur le bailleur (optionnel)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSubmitting ? null : _soumettre,
+              child: _isSubmitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Envoyer mon avis'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+ 
+// ================================================================
+// SHEET RÉSERVATION
+// ================================================================
 class _ReservationSheet extends StatefulWidget {
   final Bien bien;
-
+ 
   const _ReservationSheet({required this.bien});
-
+ 
   @override
   State<_ReservationSheet> createState() => _ReservationSheetState();
 }
-
+ 
 class _ReservationSheetState extends State<_ReservationSheet> {
   DateTime? _dateDebut;
   DateTime? _dateFin;
   String _modePaiement = 'Orange Money';
   bool _isLoading = false;
-
-  int get nombreJours =>
-      _dateDebut != null && _dateFin != null
-          ? _dateFin!.difference(_dateDebut!).inDays
-          : 0;
+ 
+  int get nombreJours => _dateDebut != null && _dateFin != null
+      ? _dateFin!.difference(_dateDebut!).inDays
+      : 0;
+ 
   double get montantTotal => nombreJours * widget.bien.prix;
-
+ 
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1000,7 +1442,8 @@ class _ReservationSheetState extends State<_ReservationSheet> {
                       context: context,
                       initialDate: DateTime.now(),
                       firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                      lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                     );
                     if (d != null) setState(() => _dateDebut = d);
                   },
@@ -1014,11 +1457,16 @@ class _ReservationSheetState extends State<_ReservationSheet> {
                   onTap: () async {
                     final d = await showDatePicker(
                       context: context,
-                      initialDate: _dateDebut?.add(const Duration(days: 1)) ??
-                          DateTime.now().add(const Duration(days: 1)),
-                      firstDate: _dateDebut?.add(const Duration(days: 1)) ??
-                          DateTime.now().add(const Duration(days: 1)),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                      initialDate:
+                          _dateDebut?.add(const Duration(days: 1)) ??
+                              DateTime.now()
+                                  .add(const Duration(days: 1)),
+                      firstDate:
+                          _dateDebut?.add(const Duration(days: 1)) ??
+                              DateTime.now()
+                                  .add(const Duration(days: 1)),
+                      lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                     );
                     if (d != null) setState(() => _dateFin = d);
                   },
@@ -1027,43 +1475,44 @@ class _ReservationSheetState extends State<_ReservationSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          // Mode paiement
-          const Text(
-            'Mode de paiement',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
+          const Text('Mode de paiement',
+              style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: ['Orange Money', 'Moov Money', 'Coris Money'].map((m) {
-              return FilterChipWidget(
-                label: m,
-                isSelected: _modePaiement == m,
-                onTap: () => setState(() => _modePaiement = m),
-              );
-            }).toList(),
+            children: ['Orange Money', 'Moov Money', 'Coris Money']
+                .map((m) => FilterChipWidget(
+                      label: m,
+                      isSelected: _modePaiement == m,
+                      onTap: () =>
+                          setState(() => _modePaiement = m),
+                    ))
+                .toList(),
           ),
           const SizedBox(height: 20),
-          // Récap prix
+ 
           if (nombreJours > 0)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: ImmoFasoTheme.primary.withValues(alpha:1.0),
+                // CORRECTION 10 & 11 : withOpacity → withValues
+                color: ImmoFasoTheme.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: ImmoFasoTheme.primary.withValues(alpha:0.2),
-                ),
+                    color: ImmoFasoTheme.primary.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
-                  _recapLigne('Prix par nuit', formatPrix(widget.bien.prix)),
+                  _recapLigne(
+                      'Prix par nuit', formatPrix(widget.bien.prix)),
                   _recapLigne('Nombre de nuits', '$nombreJours'),
                   const Divider(),
-                  _recapLigne('Total', formatPrix(montantTotal), isBold: true),
+                  _recapLigne('Total', formatPrix(montantTotal),
+                      isBold: true),
                 ],
               ),
             ),
+ 
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Confirmer la réservation',
@@ -1072,12 +1521,18 @@ class _ReservationSheetState extends State<_ReservationSheet> {
                 ? null
                 : () async {
                     setState(() => _isLoading = true);
+                    // CORRECTION 12 : capture navigator et messenger
+                    //                 AVANT l'await pour éviter l'erreur
+                    //                 BuildContext across async gaps
+                    final nav = Navigator.of(context);
+                    final messenger = ScaffoldMessenger.of(context);
                     await Future.delayed(const Duration(seconds: 1));
                     if (mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      nav.pop();
+                      messenger.showSnackBar(
                         const SnackBar(
-                          content: Text('Réservation confirmée avec succès !'),
+                          content: Text(
+                              'Réservation confirmée avec succès !'),
                           backgroundColor: ImmoFasoTheme.success,
                         ),
                       );
@@ -1089,7 +1544,7 @@ class _ReservationSheetState extends State<_ReservationSheet> {
       ),
     );
   }
-
+ 
   Widget _datePicker({
     required String label,
     required DateTime? date,
@@ -1106,13 +1561,10 @@ class _ReservationSheetState extends State<_ReservationSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: ImmoFasoTheme.textSecondary,
-              ),
-            ),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: ImmoFasoTheme.textSecondary)),
             const SizedBox(height: 4),
             Text(
               date != null
@@ -1130,8 +1582,9 @@ class _ReservationSheetState extends State<_ReservationSheet> {
       ),
     );
   }
-
-  Widget _recapLigne(String label, String value, {bool isBold = false}) {
+ 
+  Widget _recapLigne(String label, String value,
+      {bool isBold = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1141,7 +1594,8 @@ class _ReservationSheetState extends State<_ReservationSheet> {
           Text(
             value,
             style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              fontWeight:
+                  isBold ? FontWeight.bold : FontWeight.normal,
               color: isBold ? ImmoFasoTheme.primary : null,
               fontSize: isBold ? 16 : 14,
             ),

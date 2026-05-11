@@ -6,6 +6,8 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
+import 'kyc_screen.dart';
+//import 'recu_paiement_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -105,7 +107,7 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: ImmoFasoTheme.primary.withOpacity(0.1),
+                      color: ImmoFasoTheme.primary.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -209,6 +211,16 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () {},
                   ),
                   _menuItem(
+                     icon: Icons.verified_user_outlined,
+                     label: 'Vérification du compte',
+                      onTap: () {
+                      Navigator.push(
+                       context,
+                        MaterialPageRoute(builder: (_) => const KycScreen()),
+                    );
+               },
+       ),
+                  _menuItem(
                     icon: Icons.help_outline,
                     label: 'Aide & Support',
                     onTap: () {},
@@ -246,7 +258,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildNotifications() {
-    final notifs = DemoData.getNotifications();
+    final notifs = [];
     final nonLues = notifs.where((n) => !n.estLu).length;
 
     return Container(
@@ -287,7 +299,7 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: n.estLu
                       ? Colors.grey.shade100
-                      : ImmoFasoTheme.primary.withOpacity(0.1),
+                      : ImmoFasoTheme.primary.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -575,11 +587,13 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                         setState(() => _isLoading = true);
                         await Future.delayed(const Duration(seconds: 1));
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           Navigator.pop(context);
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Bien publié avec succès ! En attente de validation.'),
-                              backgroundColor: ImmoFasoTheme.success,
+                              backgroundColor: Color.fromARGB(255, 209, 97, 11),
                             ),
                           );
                         }
@@ -596,4 +610,6 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
       ),
     );
   }
+
+ 
 }

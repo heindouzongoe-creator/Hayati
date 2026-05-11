@@ -3,19 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ImmoFasoTheme {
-  // Couleurs principales - vert/or inspiré du Burkina Faso
-  static const Color primary = Color(0xFF006B3F);     // vert
-  static const Color primaryLight = Color(0xFF4CAF82);
-  static const Color primaryDark = Color(0xFF004D2D);
-  static const Color secondary = Color(0xFFFFC107);   // or/jaune
-  static const Color accent = Color(0xFFEF5350);      // rouge
+  static const Color primary = Color.fromARGB(255, 194, 117, 65);     
+  static const Color primaryLight = Color.fromARGB(255, 237, 79, 51);
+  static const Color primaryDark = Color.fromARGB(255, 224, 80, 41);
+  static const Color secondary = Color(0xFFFFC107);   
+  static const Color accent = Color(0xFFEF5350);      
   static const Color background = Color(0xFFF5F5F5);
   static const Color surface = Colors.white;
   static const Color textPrimary = Color(0xFF1A1A1A);
   static const Color textSecondary = Color(0xFF666666);
   static const Color textLight = Color(0xFF999999);
   static const Color border = Color(0xFFE0E0E0);
-  static const Color success = Color(0xFF4CAF50);
+  static const Color success = Color.fromARGB(255, 185, 83, 40);
   static const Color warning = Color(0xFFFF9800);
   static const Color error = Color(0xFFF44336);
 
@@ -84,7 +83,7 @@ class ImmoFasoTheme {
           type: BottomNavigationBarType.fixed,
         ),
         chipTheme: ChipThemeData(
-          backgroundColor: primaryLight.withOpacity(0.15),
+          backgroundColor: primaryLight.withValues(alpha: 0.15),
           selectedColor: primary,
           labelStyle: const TextStyle(fontSize: 12),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -115,8 +114,9 @@ class AppStrings {
     'Tous',
     'Villa',
     'Appartement',
-    'Chambre',
+    'Chambre salon ',
     'Cour commune',
+    'Cour unique',
     'Résidence',
     'Boutique',
     'Bureau',

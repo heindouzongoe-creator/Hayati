@@ -1,12 +1,13 @@
 // lib/models/models.dart
 
 enum RoleUtilisateur { locataire, proprietaire, agence, administrateur }
-enum StatutBien { disponible, loue, reserve }
+enum StatutBien { disponible, louer, reserve }
 enum TypeBien { logement, localCommercial }
 enum TypeLocation { courtTerme, longTerme }
 enum StatutVisite { enAttente, acceptee, refusee }
 enum StatutReservation { confirmee, annulee, enAttente }
 enum StatutPaiement { valide, enAttente, echec }
+enum Loueur { proprietaire, agence, demarcheur }
 
 class Utilisateur {
   final int id;

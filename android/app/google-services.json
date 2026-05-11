@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "601513352119",
+    "project_id": "immofaso-b3be7",
+    "storage_bucket": "immofaso-b3be7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601513352119:android:6fb6c9c9cc0dc76b746632",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOSfqsYqg8qfiYLNQcgy5Yhp3PNiY2Br4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

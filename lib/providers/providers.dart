@@ -103,7 +103,7 @@ class BienProvider extends ChangeNotifier {
     notifyListeners();
 
     await Future.delayed(const Duration(milliseconds: 800));
-    _biens = DemoData.getBiens();
+    _biens =[];
     _appliquerFiltres();
 
     _isLoading = false;
@@ -164,4 +164,5 @@ class BienProvider extends ChangeNotifier {
   List<Bien> getBiensProprietaire(int proprietaireId) {
     return _biens.where((b) => b.proprietaireId == proprietaireId).toList();
   }
+
 }
