@@ -1,54 +1,47 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'http_service.dart';
 
 class NotificationService {
-  static final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  static FirebaseMessaging get _fcm => FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifs =
       FlutterLocalNotificationsPlugin();
 
   static Future<void> init() async {
-    // Demande de permission (iOS surtout)
+    await Firebase.initializeApp();
+
     await _fcm.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // Initialisation notifications locales
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-
     const DarwinInitializationSettings iosSettings =
         DarwinInitializationSettings();
-
-    const InitializationSettings initSettings =
-        InitializationSettings(
+    const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
 
-    await _localNotifs.initialize(initSettings);
+    await _localNotifs.initialize(settings: initSettings);
 
-    // Création du canal Android
-    const AndroidNotificationChannel channel =
-        AndroidNotificationChannel(
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'immofaso_channel',
       'ImmoFaso Notifications',
       description: 'Notifications de la plateforme ImmoFaso',
       importance: Importance.high,
     );
 
-    final androidImplementation =
+    final AndroidFlutterLocalNotificationsPlugin? androidImpl =
         _localNotifs.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.createNotificationChannel(channel);
 
-    await androidImplementation?.createNotificationChannel(channel);
-
-    // Écoute des messages en foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
-
       if (notification != null) {
         _afficherNotifLocale(
           title: notification.title ?? 'ImmoFaso',
@@ -57,13 +50,11 @@ class NotificationService {
       }
     });
 
-    // Récupération du token FCM
     final String? token = await _fcm.getToken();
     if (token != null) {
       await _envoyerTokenAuBackend(token);
     }
 
-    // Rafraîchissement du token
     _fcm.onTokenRefresh.listen(_envoyerTokenAuBackend);
   }
 
@@ -73,9 +64,7 @@ class NotificationService {
         '/notifications/token',
         body: {'fcm_token': token},
       );
-    } catch (_) {
-      // silencieux volontairement
-    }
+    } catch (_) {}
   }
 
   static Future<void> _afficherNotifLocale({
@@ -90,20 +79,18 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
     );
-
-    const DarwinNotificationDetails iosDetails =
-        DarwinNotificationDetails();
-
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
 
     await _localNotifs.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
-      details,
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      notificationDetails: details,
     );
   }
 }
+
