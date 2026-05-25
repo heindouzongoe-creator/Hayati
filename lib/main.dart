@@ -23,11 +23,11 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const ImmoFasoApp());
+  runApp(const HerressoApp());
 }
 
-class ImmoFasoApp extends StatelessWidget {
-  const ImmoFasoApp({super.key});
+class HerressoApp extends StatelessWidget {
+  const HerressoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +37,9 @@ class ImmoFasoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BienProvider()),
       ],
       child: MaterialApp(
-        title: 'ImmoFaso',
+        title: 'Herresso',
         debugShowCheckedModeBanner: false,
-        theme: ImmoFasoTheme.theme,
+        theme: HerressoTheme.theme,
         home: const AppNavigator(),
       ),
     );

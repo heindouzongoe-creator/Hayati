@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'http_service.dart';
+import 'api_service.dart';
 
 class NotificationService {
   static FirebaseMessaging get _fcm => FirebaseMessaging.instance;
@@ -26,12 +26,12 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotifs.initialize(settings: initSettings);
+    await _localNotifs.initialize(initSettings);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'immofaso_channel',
-      'ImmoFaso Notifications',
-      description: 'Notifications de la plateforme ImmoFaso',
+      'herresso_channel',
+      'Herresso Notifications',
+      description: 'Notifications de la plateforme Herresso',
       importance: Importance.high,
     );
 
@@ -44,7 +44,7 @@ class NotificationService {
       final notification = message.notification;
       if (notification != null) {
         _afficherNotifLocale(
-          title: notification.title ?? 'ImmoFaso',
+          title: notification.title ?? 'Herresso',
           body: notification.body ?? '',
         );
       }
@@ -73,8 +73,8 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'immofaso_channel',
-      'ImmoFaso Notifications',
+      'herresso_channel',
+      'Herresso Notifications',
       icon: '@mipmap/ic_launcher',
       importance: Importance.high,
       priority: Priority.high,
@@ -86,10 +86,10 @@ class NotificationService {
     );
 
     await _localNotifs.show(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title: title,
-      body: body,
-      notificationDetails: details,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      details,
     );
   }
 }

@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final bienProvider = context.watch<BienProvider>();
 
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: AppTheme.background,
       body: CustomScrollView(
         slivers: [
           // AppBar avec dégradé
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
             expandedHeight: 200,
             floating: false,
             pinned: true,
-            backgroundColor: ImmoFasoTheme.primary,
+            backgroundColor: AppTheme.primary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
@@ -61,9 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      ImmoFasoTheme.primaryDark,
-                      ImmoFasoTheme.primary,
-                      ImmoFasoTheme.primaryLight,
+                      AppTheme.primaryDark,
+                      AppTheme.primary,
+                      AppTheme.primaryLight,
                     ],
                   ),
                 ),
@@ -115,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     width: 10,
                                     height: 10,
                                     decoration: const BoxDecoration(
-                                      color: ImmoFasoTheme.secondary,
+                                      color: AppTheme.secondary,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               hintText: 'Ville, quartier, type de bien...',
                               prefixIcon: const Icon(
                                 Icons.search,
-                                color: ImmoFasoTheme.primary,
+                                color: AppTheme.primary,
                               ),
                               border: InputBorder.none,
                               suffixIcon: _searchCtrl.text.isNotEmpty
@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            title: const Text('ImmoFaso'),
+            title: const Text('Herresso'),
           ),
 
           SliverToBoxAdapter(
@@ -245,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Padding(
                         padding: EdgeInsets.all(40),
                         child: CircularProgressIndicator(
-                          color: ImmoFasoTheme.primary,
+                          color: AppTheme.primary,
                         ),
                       ),
                     )
@@ -303,17 +303,17 @@ class _HomeScreenState extends State<HomeScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? ImmoFasoTheme.primary : Colors.white,
+          color: isSelected ? AppTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? ImmoFasoTheme.primary : ImmoFasoTheme.border,
+            color: isSelected ? AppTheme.primary : AppTheme.border,
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : ImmoFasoTheme.textSecondary,
+            color: isSelected ? Colors.white : AppTheme.textSecondary,
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -335,11 +335,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Row(
       children: [
-        _statCard('$disponibles', 'Disponibles', Icons.home_outlined, ImmoFasoTheme.success),
+        _statCard('$disponibles', 'Disponibles', Icons.home_outlined, AppTheme.success),
         const SizedBox(width: 12),
-        _statCard('$longTerme', 'Long terme', Icons.calendar_month_outlined, ImmoFasoTheme.primary),
+        _statCard('$longTerme', 'Long terme', Icons.calendar_month_outlined, AppTheme.primary),
         const SizedBox(width: 12),
-        _statCard('$courtTerme', 'Court terme', Icons.bed_outlined, ImmoFasoTheme.secondary),
+        _statCard('$courtTerme', 'Court terme', Icons.bed_outlined, AppTheme.secondary),
       ],
     );
   }
@@ -369,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label,
               style: const TextStyle(
                 fontSize: 11,
-                color: ImmoFasoTheme.textSecondary,
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -384,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [ImmoFasoTheme.primary, ImmoFasoTheme.primaryLight],
+          colors: [AppTheme.primary, AppTheme.primaryLight],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -404,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Publiez votre annonce gratuitement sur ImmoFaso',
+                  'Publiez votre annonce gratuitement sur Herresso',
                   style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 const SizedBox(height: 12),
@@ -412,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: ImmoFasoTheme.primary,
+                    foregroundColor: AppTheme.primary,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,

@@ -39,7 +39,7 @@ class ProfileScreen extends StatelessWidget {
     final user = auth.currentUser!;
 
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Mon profil'),
         actions: [
@@ -85,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: ImmoFasoTheme.primary,
+                    backgroundColor: AppTheme.primary,
                     child: Text(
                       user.prenom.isNotEmpty ? user.prenom[0].toUpperCase() : 'U',
                       style: const TextStyle(
@@ -107,7 +107,7 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: ImmoFasoTheme.primary.withValues(alpha:0.1),
+                      color: AppTheme.primary.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -117,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
                               ? '🏡 Propriétaire'
                               : '🏢 Agence',
                       style: const TextStyle(
-                        color: ImmoFasoTheme.primary,
+                        color: AppTheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -129,12 +129,12 @@ class ProfileScreen extends StatelessWidget {
                       const Icon(
                         Icons.email_outlined,
                         size: 14,
-                        color: ImmoFasoTheme.textSecondary,
+                        color: AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         user.email,
-                        style: const TextStyle(color: ImmoFasoTheme.textSecondary),
+                        style: const TextStyle(color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -145,12 +145,12 @@ class ProfileScreen extends StatelessWidget {
                       const Icon(
                         Icons.phone_outlined,
                         size: 14,
-                        color: ImmoFasoTheme.textSecondary,
+                        color: AppTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         user.telephone,
-                        style: const TextStyle(color: ImmoFasoTheme.textSecondary),
+                        style: const TextStyle(color: AppTheme.textSecondary),
                       ),
                     ],
                   ),
@@ -227,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   _menuItem(
                     icon: Icons.info_outline,
-                    label: 'À propos d\'ImmoFaso',
+                    label: 'À propos d\'Herresso',
                     onTap: () {},
                   ),
                 ],
@@ -299,12 +299,12 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: n.estLu
                       ? Colors.grey.shade100
-                      : ImmoFasoTheme.primary.withValues(alpha:0.1),
+                      : AppTheme.primary.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.notifications_outlined,
-                  color: n.estLu ? Colors.grey : ImmoFasoTheme.primary,
+                  color: n.estLu ? Colors.grey : AppTheme.primary,
                   size: 20,
                 ),
               ),
@@ -344,11 +344,11 @@ class ProfileScreen extends StatelessWidget {
     Color? color,
   }) {
     return ListTile(
-      leading: Icon(icon, color: color ?? ImmoFasoTheme.primary),
+      leading: Icon(icon, color: color ?? AppTheme.primary),
       title: Text(
         label,
         style: TextStyle(
-          color: color ?? ImmoFasoTheme.textPrimary,
+          color: color ?? AppTheme.textPrimary,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -356,7 +356,7 @@ class ProfileScreen extends StatelessWidget {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: ImmoFasoTheme.primary,
+                color: AppTheme.primary,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -364,7 +364,7 @@ class ProfileScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white, fontSize: 11),
               ),
             )
-          : const Icon(Icons.chevron_right, color: ImmoFasoTheme.textLight),
+          : const Icon(Icons.chevron_right, color: AppTheme.textLight),
       onTap: onTap,
     );
   }
@@ -537,14 +537,14 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                         Checkbox(
                           value: _hasEau,
                           onChanged: (v) => setState(() => _hasEau = v!),
-                          activeColor: ImmoFasoTheme.primary,
+                          activeColor: AppTheme.primary,
                         ),
                         const Text('Eau'),
                         const SizedBox(width: 16),
                         Checkbox(
                           value: _hasElec,
                           onChanged: (v) => setState(() => _hasElec = v!),
-                          activeColor: ImmoFasoTheme.primary,
+                          activeColor: AppTheme.primary,
                         ),
                         const Text('Électricité'),
                       ],
@@ -557,7 +557,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                         height: 100,
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: ImmoFasoTheme.border,
+                            color: AppTheme.border,
                             style: BorderStyle.solid,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -567,11 +567,11 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.add_photo_alternate_outlined,
-                                  size: 36, color: ImmoFasoTheme.textLight),
+                                  size: 36, color: AppTheme.textLight),
                               SizedBox(height: 8),
                               Text(
                                 'Ajouter des photos',
-                                style: TextStyle(color: ImmoFasoTheme.textSecondary),
+                                style: TextStyle(color: AppTheme.textSecondary),
                               ),
                             ],
                           ),

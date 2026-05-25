@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../theme.dart';
 import '../../widgets/widgets.dart';
-import 'package:immofaso/models/models.dart';
+import '../models/models.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: HerressoTheme.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -59,23 +59,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: ImmoFasoTheme.primary,
+                    color: HerressoTheme.primary,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(Icons.home_work, color: Colors.white, size: 45),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'ImmoFaso',
+                  'Herresso',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: ImmoFasoTheme.primary,
+                    color: HerressoTheme.primary,
                   ),
                 ),
                 const Text(
                   'Trouvez votre logement au Burkina',
-                  style: TextStyle(color: ImmoFasoTheme.textSecondary),
+                  style: TextStyle(color: HerressoTheme.textSecondary),
                 ),
                 const SizedBox(height: 48),
                 // Champs
@@ -172,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: const Icon(Icons.visibility_outlined),
                   label: const Text('Parcourir sans compte'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: ImmoFasoTheme.textSecondary,
+                    foregroundColor: HerressoTheme.textSecondary,
                   ),
                 ),
               ],
@@ -236,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: HerressoTheme.background,
       appBar: AppBar(
         title: const Text('Créer un compte'),
         leading: IconButton(
@@ -252,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Rejoignez ImmoFaso',
+                'Rejoignez Herresso',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -261,7 +261,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 4),
               const Text(
                 'Créez votre compte gratuitement',
-                style: TextStyle(color: ImmoFasoTheme.textSecondary),
+                style: TextStyle(color: HerressoTheme.textSecondary),
               ),
               const SizedBox(height: 24),
               // Type de compte
@@ -399,10 +399,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? ImmoFasoTheme.primary : Colors.white,
+          color: isSelected ? HerressoTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? ImmoFasoTheme.primary : ImmoFasoTheme.border,
+            color: isSelected ? HerressoTheme.primary : HerressoTheme.border,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -410,7 +410,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : ImmoFasoTheme.primary,
+              color: isSelected ? Colors.white : HerressoTheme.primary,
               size: 32,
             ),
             const SizedBox(height: 8),
@@ -418,7 +418,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               label,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : ImmoFasoTheme.textPrimary,
+                color: isSelected ? Colors.white : HerressoTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -426,7 +426,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               subtitle,
               style: TextStyle(
                 fontSize: 11,
-                color: isSelected ? Colors.white70 : ImmoFasoTheme.textLight,
+                color: isSelected ? Colors.white70 : HerressoTheme.textLight,
               ),
               textAlign: TextAlign.center,
             ),

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ImmoFasoTheme {
+class HerressoTheme {
   static const Color primary = Color.fromARGB(255, 194, 117, 65);     
   static const Color primaryLight = Color.fromARGB(255, 237, 79, 51);
   static const Color primaryDark = Color.fromARGB(255, 224, 80, 41);
@@ -95,7 +95,7 @@ class ImmoFasoTheme {
 }
 
 class AppStrings {
-  static const String appName = 'ImmoFaso';
+  static const String appName = 'Herresso';
   static const String tagline = 'Trouvez votre logement au Burkina';
 
   // Villes
@@ -132,4 +132,24 @@ class AppSizes {
   static const double radiusMedium = 12.0;
   static const double radiusLarge = 16.0;
   static const double radiusXLarge = 24.0;
+}
+
+// Alias kept for older codebases that referenced AppTheme
+class AppTheme {
+  static const Color primary = HerressoTheme.primary;
+  static const Color primaryLight = HerressoTheme.primaryLight;
+  static const Color primaryDark = HerressoTheme.primaryDark;
+  static const Color secondary = HerressoTheme.secondary;
+  static const Color accent = HerressoTheme.accent;
+  static const Color background = HerressoTheme.background;
+  static const Color surface = HerressoTheme.surface;
+  static const Color textPrimary = HerressoTheme.textPrimary;
+  static const Color textSecondary = HerressoTheme.textSecondary;
+  static const Color textLight = HerressoTheme.textLight;
+  static const Color border = HerressoTheme.border;
+  static const Color success = HerressoTheme.success;
+  static const Color warning = HerressoTheme.warning;
+  static const Color error = HerressoTheme.error;
+
+  static ThemeData get theme => HerressoTheme.theme;
 }

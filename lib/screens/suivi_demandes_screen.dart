@@ -68,7 +68,7 @@ class _SuiviDemandesScreenState extends State<SuiviDemandesScreen>
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: ImmoFasoTheme.primary))
+          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
           : TabBarView(
               controller: _tabCtrl,
               children: [
@@ -117,7 +117,7 @@ class _VisiteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statutConfig = {
       StatutVisite.enAttente: {'color': Colors.orange, 'label': 'En attente', 'icon': Icons.hourglass_empty},
-      StatutVisite.acceptee: {'color': ImmoFasoTheme.success, 'label': 'Acceptée ✓', 'icon': Icons.check_circle},
+      StatutVisite.acceptee: {'color': AppTheme.success, 'label': 'Acceptée ✓', 'icon': Icons.check_circle},
       StatutVisite.refusee: {'color': Colors.red, 'label': 'Refusée', 'icon': Icons.cancel},
     };
     final conf = statutConfig[visite.statut]!;
@@ -162,11 +162,11 @@ class _VisiteCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 14, color: ImmoFasoTheme.textSecondary),
+                const Icon(Icons.calendar_today, size: 14, color: AppTheme.textSecondary),
                 const SizedBox(width: 4),
                 Text(
                   DateFormat('EEEE d MMMM yyyy à HH:mm', 'fr_FR').format(visite.dateVisite),
-                  style: const TextStyle(fontSize: 13, color: ImmoFasoTheme.textSecondary),
+                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -189,7 +189,7 @@ class _ReservationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statutConfig = {
       StatutReservation.enAttente: {'color': Colors.orange, 'label': 'En attente'},
-      StatutReservation.confirmee: {'color': ImmoFasoTheme.success, 'label': 'Confirmée ✓'},
+      StatutReservation.confirmee: {'color': AppTheme.success, 'label': 'Confirmée ✓'},
       StatutReservation.annulee: {'color': Colors.red, 'label': 'Annulée'},
     };
     final conf = statutConfig[reservation.statut]!;
@@ -225,13 +225,13 @@ class _ReservationCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.date_range, size: 14, color: ImmoFasoTheme.textSecondary),
+                const Icon(Icons.date_range, size: 14, color: AppTheme.textSecondary),
                 const SizedBox(width: 4),
                 Text(
                   '${DateFormat('d MMM', 'fr_FR').format(reservation.dateDebut)} → '
                   '${DateFormat('d MMM yyyy', 'fr_FR').format(reservation.dateFin)} '
                   '(${reservation.nombreJours} nuits)',
-                  style: const TextStyle(fontSize: 13, color: ImmoFasoTheme.textSecondary),
+                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                 ),
               ],
             ),
@@ -243,7 +243,7 @@ class _ReservationCard extends StatelessWidget {
                   formatPrix(reservation.montantTotal),
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: ImmoFasoTheme.primary,
+                      color: AppTheme.primary,
                       fontSize: 16),
                 ),
                 if (reservation.statut == StatutReservation.enAttente)

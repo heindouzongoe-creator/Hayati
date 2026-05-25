@@ -65,14 +65,14 @@ class _KycScreenState extends State<KycScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Documents soumis. Vérification sous 24h.'),
-            backgroundColor: ImmoFasoTheme.success,
+            backgroundColor: HerressoTheme.success,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erreur: ${e.toString()}')),
         );
       }
     } finally {
@@ -168,7 +168,7 @@ class _KycScreenState extends State<KycScreen> {
         'sub': 'Votre dossier est en cours d\'examen (24-48h)',
       },
       'verifie': {
-        'color': ImmoFasoTheme.success,
+        'color': HerressoTheme.success,
         'icon': Icons.verified,
         'text': 'Compte vérifié ✓',
         'sub': 'Votre identité a été confirmée',
@@ -202,7 +202,7 @@ class _KycScreenState extends State<KycScreen> {
                         color: c['color'] as Color)),
                 Text(c['sub'] as String,
                     style: const TextStyle(
-                        fontSize: 12, color: ImmoFasoTheme.textSecondary)),
+                        fontSize: 12, color: HerressoTheme.textSecondary)),
               ],
             ),
           ),
@@ -216,7 +216,7 @@ class _KycScreenState extends State<KycScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, color: ImmoFasoTheme.primary, size: 18),
+          Icon(icon, color: HerressoTheme.primary, size: 18),
           const SizedBox(width: 8),
           Text(text, style: const TextStyle(fontSize: 14)),
         ],
@@ -233,8 +233,8 @@ class _KycScreenState extends State<KycScreen> {
         decoration: BoxDecoration(
           border: Border.all(
             color: file != null
-                ? ImmoFasoTheme.success
-                : ImmoFasoTheme.border,
+                ? HerressoTheme.success
+                : HerressoTheme.border,
           ),
           borderRadius: BorderRadius.circular(12),
           color: Colors.grey.shade50,
@@ -249,12 +249,12 @@ class _KycScreenState extends State<KycScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.add_photo_alternate_outlined,
-                      color: ImmoFasoTheme.textLight, size: 30),
+                      color: HerressoTheme.textLight, size: 30),
                   const SizedBox(height: 4),
                   Text(label,
                       style: const TextStyle(
                           fontSize: 11,
-                          color: ImmoFasoTheme.textSecondary),
+                          color: HerressoTheme.textSecondary),
                       textAlign: TextAlign.center),
                 ],
               ),

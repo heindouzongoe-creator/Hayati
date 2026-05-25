@@ -1,6 +1,5 @@
 // lib/screens/biens_screens.dart
 import 'package:flutter/material.dart';
-// ignore: library_prefixes
 import 'package:http/http.dart' as HttpService show post;
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -11,7 +10,7 @@ import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
 // ignore: unused_import
-import '../services/http_service.dart';
+import '../services/api_service.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
  
@@ -61,7 +60,7 @@ class _BienListScreenState extends State<BienListScreen> {
     final provider = context.watch<BienProvider>();
  
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: HerressoTheme.background,
       appBar: AppBar(
         title: const Text('Tous les biens'),
         actions: [
@@ -88,7 +87,7 @@ class _BienListScreenState extends State<BienListScreen> {
                 Text(
                   '${provider.biens.length} bien(s) trouvé(s)',
                   style: const TextStyle(
-                    color: ImmoFasoTheme.textSecondary,
+                    color: HerressoTheme.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -100,10 +99,10 @@ class _BienListScreenState extends State<BienListScreen> {
             child: provider.isLoading
                 ? const Center(
                     child: CircularProgressIndicator(
-                        color: ImmoFasoTheme.primary),
+                        color: HerressoTheme.primary),
                   )
                 : provider.biens.isEmpty
-                    ? EmptyState(
+                    ? const EmptyState(
                         icon: Icons.home_outlined,
                         title: 'Aucun bien trouvé',
                         subtitle: 'Essayez de modifier vos filtres',
@@ -277,7 +276,7 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                   Text(
                     '$_nombreNuitsMax nuits',
                     style: const TextStyle(
-                      color: ImmoFasoTheme.primary,
+                      color: HerressoTheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -288,7 +287,7 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                 min: 1,
                 max: 30,
                 divisions: 29,
-                activeColor: ImmoFasoTheme.primary,
+                activeColor: HerressoTheme.primary,
                 onChanged: (v) =>
                     setState(() => _nombreNuitsMax = v.toInt()),
               ),
@@ -303,7 +302,7 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                 Text(
                   formatPrix(_prixMax),
                   style: const TextStyle(
-                    color: ImmoFasoTheme.primary,
+                    color: HerressoTheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -314,7 +313,7 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               min: 10000,
               max: 500000,
               divisions: 49,
-              activeColor: ImmoFasoTheme.primary,
+              activeColor: HerressoTheme.primary,
               onChanged: (v) => setState(() => _prixMax = v),
             ),
             const SizedBox(height: 24),
@@ -440,7 +439,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                         content: Text(
                           'Visite demandée pour le ${DateFormat('d MMMM yyyy', 'fr_FR').format(date)}',
                         ),
-                        backgroundColor: ImmoFasoTheme.success,
+                        backgroundColor: HerressoTheme.success,
                       ),
                     );
                   }
@@ -509,7 +508,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
               const SizedBox(height: 4),
               const Text('Aidez-nous à maintenir une plateforme fiable',
                   style: TextStyle(
-                      color: ImmoFasoTheme.textSecondary,
+                      color: HerressoTheme.textSecondary,
                       fontSize: 13)),
               const SizedBox(height: 16),
  
@@ -534,7 +533,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                             title: Text(motif,
                                 style: const TextStyle(fontSize: 14)),
                             contentPadding: EdgeInsets.zero,
-                            activeColor: ImmoFasoTheme.primary,
+                            activeColor: HerressoTheme.primary,
                           ))
                       .toList(),
                 ),
@@ -575,7 +574,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                 const SnackBar(
                                   content:
                                       Text('Signalement envoyé. Merci !'),
-                                  backgroundColor: ImmoFasoTheme.success,
+                                  backgroundColor: HerressoTheme.success,
                                 ),
                               );
                             }
@@ -602,7 +601,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
   Widget build(BuildContext context) {
     final bien = widget.bien;
     return Scaffold(
-      backgroundColor: ImmoFasoTheme.background,
+      backgroundColor: HerressoTheme.background,
       body: Stack(
         children: [
           CustomScrollView(
@@ -610,7 +609,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
               SliverAppBar(
                 expandedHeight: 280,
                 pinned: true,
-                backgroundColor: ImmoFasoTheme.primary,
+                backgroundColor: HerressoTheme.primary,
                 leading: IconButton(
                   icon: Container(
                     padding: const EdgeInsets.all(6),
@@ -804,7 +803,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                     horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: bien.estDisponible
-                                      ? ImmoFasoTheme.success
+                                      ? HerressoTheme.success
                                           .withValues(alpha: 0.1)
                                       : Colors.red
                                           .withValues(alpha: 0.1),
@@ -817,7 +816,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                       : 'Indisponible',
                                   style: TextStyle(
                                     color: bien.estDisponible
-                                        ? ImmoFasoTheme.success
+                                        ? HerressoTheme.success
                                         : Colors.red,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -831,13 +830,13 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                             children: [
                               const Icon(Icons.location_on,
                                   size: 16,
-                                  color: ImmoFasoTheme.primary),
+                                  color: HerressoTheme.primary),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   bien.localisation.adresseComplete,
                                   style: const TextStyle(
-                                    color: ImmoFasoTheme.textSecondary,
+                                    color: HerressoTheme.textSecondary,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -858,7 +857,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                     style: const TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: ImmoFasoTheme.primary,
+                                      color: HerressoTheme.primary,
                                     ),
                                   ),
                                   Text(
@@ -867,8 +866,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                         ? 'par nuit'
                                         : 'par mois',
                                     style: const TextStyle(
-                                      color:
-                                          ImmoFasoTheme.textSecondary,
+                                      color: HerressoTheme.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -881,8 +879,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                       rating: bien.note!,
                                       itemBuilder: (c, _) =>
                                           const Icon(Icons.star,
-                                              color: ImmoFasoTheme
-                                                  .secondary),
+                                              color: HerressoTheme.secondary),
                                       itemCount: 5,
                                       itemSize: 20,
                                     ),
@@ -908,10 +905,10 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                       color: Colors.white,
                       child: TabBar(
                         controller: _tabCtrl,
-                        labelColor: ImmoFasoTheme.primary,
+                        labelColor: HerressoTheme.primary,
                         unselectedLabelColor:
-                            ImmoFasoTheme.textSecondary,
-                        indicatorColor: ImmoFasoTheme.primary,
+                            HerressoTheme.textSecondary,
+                        indicatorColor: HerressoTheme.primary,
                         tabs: const [
                           Tab(text: 'Détails'),
                           Tab(text: 'Caractéristiques'),
@@ -943,7 +940,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                 Text(
                                   bien.description,
                                   style: const TextStyle(
-                                    color: ImmoFasoTheme.textSecondary,
+                                    color: HerressoTheme.textSecondary,
                                     height: 1.6,
                                   ),
                                 ),
@@ -959,7 +956,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: ImmoFasoTheme.background,
+                                    color: HerressoTheme.background,
                                     borderRadius:
                                         BorderRadius.circular(12),
                                   ),
@@ -968,7 +965,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                       CircleAvatar(
                                         radius: 24,
                                         backgroundColor:
-                                            ImmoFasoTheme.primaryLight,
+                                            HerressoTheme.primaryLight,
                                         child: Text(
                                           bien.proprietaireNom.isNotEmpty
                                               ? bien.proprietaireNom[0]
@@ -997,7 +994,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                             Text(
                                               bien.proprietaireTelephone,
                                               style: const TextStyle(
-                                                color: ImmoFasoTheme
+                                                color: HerressoTheme
                                                     .textSecondary,
                                                 fontSize: 13,
                                               ),
@@ -1009,7 +1006,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                         onPressed: _appelerProprietaire,
                                         icon: const Icon(Icons.call,
                                             color:
-                                                ImmoFasoTheme.primary),
+                                                HerressoTheme.primary),
                                       ),
                                     ],
                                   ),
@@ -1076,7 +1073,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                     child: Row(
                                       children: [
                                         const Icon(Icons.check_circle,
-                                            color: ImmoFasoTheme.success,
+                                            color: HerressoTheme.success,
                                             size: 18),
                                         const SizedBox(width: 8),
                                         Text('${c.nom} : ',
@@ -1108,14 +1105,14 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                           style: const TextStyle(
                                             fontSize: 48,
                                             fontWeight: FontWeight.bold,
-                                            color: ImmoFasoTheme.primary,
+                                            color: HerressoTheme.primary,
                                           ),
                                         ),
                                         RatingBarIndicator(
                                           rating: bien.note!,
                                           itemBuilder: (c, _) =>
                                               const Icon(Icons.star,
-                                                  color: ImmoFasoTheme
+                                                  color: HerressoTheme
                                                       .secondary),
                                           itemCount: 5,
                                           itemSize: 28,
@@ -1123,7 +1120,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                         Text(
                                           '${bien.nombreAvis} avis',
                                           style: const TextStyle(
-                                            color: ImmoFasoTheme
+                                            color: HerressoTheme
                                                 .textSecondary,
                                           ),
                                         ),
@@ -1212,14 +1209,14 @@ class _BienDetailScreenState extends State<BienDetailScreen>
         decoration: BoxDecoration(
           // CORRECTION 8 : withOpacity → withValues
           color: dispo
-              ? ImmoFasoTheme.success.withValues(alpha: 0.1)
+              ? HerressoTheme.success.withValues(alpha: 0.1)
               : Colors.red.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
             Icon(icon,
-                color: dispo ? ImmoFasoTheme.success : Colors.red,
+                color: dispo ? HerressoTheme.success : Colors.red,
                 size: 28),
             const SizedBox(height: 4),
             Text(
@@ -1227,7 +1224,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: dispo ? ImmoFasoTheme.success : Colors.red,
+                color: dispo ? HerressoTheme.success : Colors.red,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1284,7 +1281,7 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Merci pour votre avis !'),
-            backgroundColor: ImmoFasoTheme.success,
+            backgroundColor: HerressoTheme.success,
           ),
         );
       }
@@ -1306,12 +1303,12 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           // CORRECTION 9 : withOpacity → withValues
-          color: ImmoFasoTheme.success.withValues(alpha: 0.1),
+          color: HerressoTheme.success.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Row(
           children: [
-            Icon(Icons.check_circle, color: ImmoFasoTheme.success),
+            Icon(Icons.check_circle, color: HerressoTheme.success),
             SizedBox(width: 8),
             Text('Vous avez noté ce bailleur'),
           ],
@@ -1322,7 +1319,7 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: ImmoFasoTheme.border),
+        border: Border.all(color: HerressoTheme.border),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -1331,7 +1328,7 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
           const Text(
             'Votre expérience avec ce bailleur :',
             style: TextStyle(
-                fontSize: 13, color: ImmoFasoTheme.textSecondary),
+                fontSize: 13, color: HerressoTheme.textSecondary),
           ),
           const SizedBox(height: 8),
           Row(
@@ -1342,7 +1339,7 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
                     setState(() => _noteBailleur = (i + 1).toDouble()),
                 child: Icon(
                   i < _noteBailleur ? Icons.star : Icons.star_border,
-                  color: ImmoFasoTheme.secondary,
+                  color: HerressoTheme.secondary,
                   size: 36,
                 ),
               );
@@ -1496,10 +1493,10 @@ class _ReservationSheetState extends State<_ReservationSheet> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 // CORRECTION 10 & 11 : withOpacity → withValues
-                color: ImmoFasoTheme.primary.withValues(alpha: 0.05),
+                color: HerressoTheme.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: ImmoFasoTheme.primary.withValues(alpha: 0.2)),
+                    color: HerressoTheme.primary.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
@@ -1533,7 +1530,7 @@ class _ReservationSheetState extends State<_ReservationSheet> {
                         const SnackBar(
                           content: Text(
                               'Réservation confirmée avec succès !'),
-                          backgroundColor: ImmoFasoTheme.success,
+                          backgroundColor: HerressoTheme.success,
                         ),
                       );
                     }
@@ -1555,7 +1552,7 @@ class _ReservationSheetState extends State<_ReservationSheet> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: ImmoFasoTheme.border),
+          border: Border.all(color: HerressoTheme.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -1564,7 +1561,7 @@ class _ReservationSheetState extends State<_ReservationSheet> {
             Text(label,
                 style: const TextStyle(
                     fontSize: 11,
-                    color: ImmoFasoTheme.textSecondary)),
+                    color: HerressoTheme.textSecondary)),
             const SizedBox(height: 4),
             Text(
               date != null
@@ -1573,8 +1570,8 @@ class _ReservationSheetState extends State<_ReservationSheet> {
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: date != null
-                    ? ImmoFasoTheme.textPrimary
-                    : ImmoFasoTheme.textLight,
+                    ? HerressoTheme.textPrimary
+                    : HerressoTheme.textLight,
               ),
             ),
           ],
@@ -1596,7 +1593,7 @@ class _ReservationSheetState extends State<_ReservationSheet> {
             style: TextStyle(
               fontWeight:
                   isBold ? FontWeight.bold : FontWeight.normal,
-              color: isBold ? ImmoFasoTheme.primary : null,
+              color: isBold ? HerressoTheme.primary : null,
               fontSize: isBold ? 16 : 14,
             ),
           ),

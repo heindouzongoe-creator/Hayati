@@ -31,9 +31,9 @@ class RecuPaiementScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: ImmoFasoTheme.primary,
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                color: AppTheme.primary,
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
@@ -60,13 +60,13 @@ class RecuPaiementScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
               ),
               child: Column(
                 children: [
@@ -74,7 +74,7 @@ class RecuPaiementScreen extends StatelessWidget {
                   const Divider(),
                   _ligneRecu('Type', _formatType(paiement['type'] ?? '')),
                   _ligneRecu('Mode', _formatMode(paiement['mode_paiement'] ?? '')),
-                  _ligneRecu('Statut', 'Validé ✓', valueColor: ImmoFasoTheme.success),
+                  _ligneRecu('Statut', 'Validé ✓', valueColor: AppTheme.success),
                   _ligneRecu('Date', paiement['date_paiement'] ?? ''),
                   const Divider(),
                   _ligneRecu(
@@ -98,8 +98,8 @@ class RecuPaiementScreen extends StatelessWidget {
               child: const Text(
                 'Ce reçu constitue une preuve de paiement valide. '
                 'Conservez-le pour vos archives.\n'
-                'ImmoFaso - Plateforme de location - Burkina Faso',
-                style: TextStyle(fontSize: 11, color: ImmoFasoTheme.textSecondary),
+                'Herresso - Plateforme de location - Burkina Faso',
+                style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -108,7 +108,7 @@ class RecuPaiementScreen extends StatelessWidget {
             PrimaryButton(
               label: 'Fermer',
               onPressed: () => Navigator.pop(context),
-              color: ImmoFasoTheme.primary,
+              color: AppTheme.primary,
             ),
           ],
         ),
@@ -123,12 +123,12 @@ class RecuPaiementScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: ImmoFasoTheme.textSecondary)),
+          Text(label, style: const TextStyle(color: AppTheme.textSecondary)),
           Text(
             value,
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-              color: valueColor ?? ImmoFasoTheme.textPrimary,
+              color: valueColor ?? AppTheme.textPrimary,
               fontSize: isBold ? 16 : 14,
             ),
           ),

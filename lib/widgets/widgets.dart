@@ -54,7 +54,7 @@ class BienCard extends StatelessWidget {
                         color: Colors.grey.shade200,
                         child: const Center(
                           child: CircularProgressIndicator(
-                            color: ImmoFasoTheme.primary,
+                            color: AppTheme.primary,
                           ),
                         ),
                       ),
@@ -115,14 +115,14 @@ class BienCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 13, color: ImmoFasoTheme.textSecondary),
+                  const Icon(Icons.location_on, size: 13, color: AppTheme.textSecondary),
                   const SizedBox(width: 2),
                   Expanded(
                     child: Text(
                       '${bien.localisation.secteur}, ${bien.localisation.ville}',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: ImmoFasoTheme.textSecondary,
+                        color: AppTheme.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -139,13 +139,13 @@ class BienCard extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: ImmoFasoTheme.primary,
+                      color: AppTheme.primary,
                     ),
                   ),
                   if (bien.note != null)
                     Row(
                       children: [
-                        const Icon(Icons.star, size: 14, color: ImmoFasoTheme.secondary),
+                        const Icon(Icons.star, size: 14, color: AppTheme.secondary),
                         const SizedBox(width: 2),
                         Text(
                           bien.note!.toStringAsFixed(1),
@@ -158,7 +158,7 @@ class BienCard extends StatelessWidget {
                           ' (${bien.nombreAvis})',
                           style: const TextStyle(
                             fontSize: 11,
-                            color: ImmoFasoTheme.textLight,
+                            color: AppTheme.textLight,
                           ),
                         ),
                       ],
@@ -229,7 +229,7 @@ class BienCard extends StatelessWidget {
                     bien.localisation.ville,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: ImmoFasoTheme.textSecondary,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -237,7 +237,7 @@ class BienCard extends StatelessWidget {
                     formatPrix(bien.prix),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: ImmoFasoTheme.primary,
+                      color: AppTheme.primary,
                     ),
                   ),
                 ],
@@ -254,8 +254,8 @@ class BienCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bien.typeLocation == TypeLocation.courtTerme
-            ? ImmoFasoTheme.secondary
-            : ImmoFasoTheme.primary,
+            ? AppTheme.secondary
+            : AppTheme.primary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -273,11 +273,11 @@ class BienCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13, color: ImmoFasoTheme.textSecondary),
+        Icon(icon, size: 13, color: AppTheme.textSecondary),
         const SizedBox(width: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 11, color: ImmoFasoTheme.textSecondary),
+          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
         ),
       ],
     );
@@ -307,7 +307,7 @@ class SearchBarWidget extends StatelessWidget {
             onChanged: onChanged,
             decoration: InputDecoration(
               hintText: 'Rechercher un logement...',
-              prefixIcon: const Icon(Icons.search, color: ImmoFasoTheme.primary),
+              prefixIcon: const Icon(Icons.search, color: AppTheme.primary),
               suffixIcon: controller.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear),
@@ -325,7 +325,7 @@ class SearchBarWidget extends StatelessWidget {
           const SizedBox(width: 8),
           Container(
             decoration: BoxDecoration(
-              color: ImmoFasoTheme.primary,
+              color: AppTheme.primary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
@@ -357,7 +357,7 @@ class AvisCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 18,
-                  backgroundColor: ImmoFasoTheme.primaryLight,
+                  backgroundColor: AppTheme.primaryLight,
                   child: Text(
                     avis.locataireNom.isNotEmpty
                         ? avis.locataireNom[0].toUpperCase()
@@ -381,7 +381,7 @@ class AvisCard extends StatelessWidget {
                         DateFormat('d MMMM yyyy', 'fr_FR').format(avis.dateAvis),
                         style: const TextStyle(
                           fontSize: 11,
-                          color: ImmoFasoTheme.textLight,
+                          color: AppTheme.textLight,
                         ),
                       ),
                     ],
@@ -390,7 +390,7 @@ class AvisCard extends StatelessWidget {
                 RatingBarIndicator(
                   rating: avis.note.toDouble(),
                   itemBuilder: (c, _) =>
-                      const Icon(Icons.star, color: ImmoFasoTheme.secondary),
+                      const Icon(Icons.star, color: AppTheme.secondary),
                   itemCount: 5,
                   itemSize: 16,
                 ),
@@ -399,7 +399,7 @@ class AvisCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               avis.commentaire,
-              style: const TextStyle(fontSize: 13, color: ImmoFasoTheme.textSecondary),
+              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
           ],
         ),
@@ -431,7 +431,7 @@ class SectionTitle extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: ImmoFasoTheme.textPrimary,
+            color: AppTheme.textPrimary,
           ),
         ),
         if (actionLabel != null)
@@ -439,7 +439,7 @@ class SectionTitle extends StatelessWidget {
             onPressed: onAction,
             child: Text(
               actionLabel!,
-              style: const TextStyle(color: ImmoFasoTheme.primary),
+              style: const TextStyle(color: AppTheme.primary),
             ),
           ),
       ],
@@ -471,7 +471,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? ImmoFasoTheme.primary,
+          backgroundColor: color ?? AppTheme.primary,
         ),
         child: isLoading
             ? const SizedBox(
@@ -517,16 +517,16 @@ class FilterChipWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? ImmoFasoTheme.primary : Colors.white,
+          color: isSelected ? AppTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? ImmoFasoTheme.primary : ImmoFasoTheme.border,
+            color: isSelected ? AppTheme.primary : AppTheme.border,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : ImmoFasoTheme.textSecondary,
+            color: isSelected ? Colors.white : AppTheme.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 13,
           ),
@@ -568,7 +568,7 @@ class EmptyState extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: ImmoFasoTheme.textSecondary,
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -578,7 +578,7 @@ class EmptyState extends StatelessWidget {
                 subtitle!,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: ImmoFasoTheme.textLight,
+                  color: AppTheme.textLight,
                 ),
                 textAlign: TextAlign.center,
               ),
