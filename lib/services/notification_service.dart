@@ -60,10 +60,7 @@ class NotificationService {
 
   static Future<void> _envoyerTokenAuBackend(String token) async {
     try {
-      await HttpService.post(
-        '/notifications/token',
-        body: {'fcm_token': token},
-      );
+      await ApiService.saveFcmToken(token);
     } catch (_) {}
   }
 
