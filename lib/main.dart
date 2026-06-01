@@ -17,7 +17,11 @@ import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
+  try {
   await NotificationService.init();
+} catch (e) {
+  debugPrint('Firebase non configuré : $e');
+}
   await initializeDateFormatting('fr_FR', null);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

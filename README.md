@@ -1,4 +1,4 @@
-# ImmoFaso 🏠
+# Herresso🏠
 **Plateforme de gestion de location immobilière - Burkina Faso**
 
 ## Description
@@ -8,7 +8,7 @@ Application Flutter de mise en relation entre locataires et propriétaires au Bu
 
 ## 📁 Structure du projet
 ```
-immofaso/
+herresso/
 ├── lib/
 │   ├── main.dart                    ← Point d'entrée + navigation
 │   ├── theme.dart                   ← Couleurs, thème, constantes
@@ -38,7 +38,7 @@ immofaso/
 ### Étapes
 ```bash
 # 1. Cloner / copier le projet
-cd immofaso
+cd Herresso
 
 # 2. Installer les dépendances
 flutter pub get
@@ -52,9 +52,9 @@ flutter run
 
 ---
 
-## ✨ Fonctionnalités implémentées
+##  Fonctionnalités implémentées
 
-### 🔐 Authentification
+###  Authentification
 - [x] Connexion (email + mot de passe)
 - [x] Inscription (locataire / propriétaire)
 - [x] Déconnexion
@@ -134,6 +134,6 @@ flutter run
 
 ---
 
-## 👨‍💻 Développé pour ImmoFaso
+## 👨‍💻 Développé pour Herresso
 Plateforme digitale de location immobilière pour le marché burkinabè.
 Cible initiale: Ouagadougou & Bobo-Dioulasso.

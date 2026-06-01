@@ -153,31 +153,37 @@ class Bien {
   bool get estDisponible => statut == StatutBien.disponible;
 
   factory Bien.fromJson(Map<String, dynamic> json) {
-    return Bien(
-      id: json['id'],
-      typeBien: TypeBien.values.firstWhere((t) => t.name == json['typeBien']),
-      titre: json['titre'],
-      description: json['description'],
-      prix: json['prix'].toDouble(),
-      statut: StatutBien.values.firstWhere((s) => s.name == json['statut']),
-      typeLocation: TypeLocation.values.firstWhere(
-        (t) => t.name == json['typeLocation'],
-      ),
-      localisation: Localisation.fromJson(json['localisation']),
-      photos: List<String>.from(json['photos'] ?? []),
-      caracteristiques: (json['caracteristiques'] as List? ?? [])
-          .map((c) => Caracteristique.fromJson(c))
-          .toList(),
-      proprietaireId: json['proprietaireId'],
-      proprietaireNom: json['proprietaireNom'],
-      proprietaireTelephone: json['proprietaireTelephone'],
-      note: json['note']?.toDouble(),
-      nombreAvis: json['nombreAvis'] ?? 0,
-      nombreChambres: json['nombreChambres'],
-      hasEau: json['hasEau'] ?? false,
-      hasElectricite: json['hasElectricite'] ?? false,
-      datePublication: DateTime.parse(json['datePublication']),
-    );
+  return Bien(
+    id: json['id'],
+    typeBien: json['type_bien'] == 'localCommercial'
+        ? TypeBien.localCommercial
+        : TypeBien.logement,
+    titre: json['titre'],
+    description: json['description'],
+    prix: (json['prix'] as num).toDouble(),
+    statut: json['statut'] == 'louer'
+        ? StatutBien.louer
+        : json['statut'] == 'reserve'
+            ? StatutBien.reserve
+            : StatutBien.disponible,
+    typeLocation: json['type_location'] == 'courtTerme' || json['type_location'] == 'courte_duree'
+        ? TypeLocation.courtTerme
+        : TypeLocation.longTerme,
+    localisation: Localisation.fromJson(json['localisation']),
+    photos: List<String>.from(json['photos'] ?? []),
+    caracteristiques: (json['caracteristiques'] as List? ?? [])
+        .map((c) => Caracteristique.fromJson(c))
+        .toList(),
+    proprietaireId: json['proprietaire_id'] ?? json['proprietaireId'],
+    proprietaireNom: json['proprietaire_nom'] ?? json['proprietaireNom'] ?? '',
+    proprietaireTelephone: json['proprietaire_telephone'] ?? json['proprietaireTelephone'] ?? '',
+    note: (json['note'] as num?)?.toDouble(),
+    nombreAvis: json['nombre_avis'] ?? json['nombreAvis'] ?? 0,
+    nombreChambres: json['nombre_chambres'] ?? json['nombreChambres'],
+    hasEau: json['eau'] ?? json['hasEau'] ?? false,
+    hasElectricite: json['electricite'] ?? json['hasElectricite'] ?? false,
+    datePublication: DateTime.parse(json['created_at'] ?? json['datePublication'] ?? DateTime.now().toIso8601String()),
+  );
   }
 }
 
@@ -320,7 +326,7 @@ class Notification {
     required this.utilisateurId,
   });
 }
-
+/*
 // Données de démonstration
 class DemoData {
   static List<Bien> getBiens() {
@@ -556,4 +562,4 @@ class DemoData {
       ),
     ];
   }
-}
+}*/
