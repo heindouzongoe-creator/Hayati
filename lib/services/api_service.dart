@@ -1,4 +1,3 @@
-// TODO Implement this library.
 // lib/services/api_service.dart
 // Service centralisé pour tous les appels vers le backend Laravel de Herresso
 // Remplace baseUrl par l'adresse de ton serveur Laravel
@@ -61,7 +60,7 @@ class ApiService {
     required String email,
     required String telephone,
     required String password,
-    required String role, // 'locataire' ou 'proprietaire'
+    required String role, required String selfiePhotoPath, required String cnibPhotoPath, required String cnibNumero, // 'locataire' ou 'proprietaire'
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/register'),

@@ -3,7 +3,7 @@
 enum RoleUtilisateur { locataire, proprietaire, agence, administrateur }
 enum StatutBien { disponible, louer, reserve }
 enum TypeBien { logement, localCommercial }
-enum TypeLocation { courtTerme, longTerme }
+enum TypeLocation { sejour, longTerme }
 enum StatutVisite { enAttente, acceptee, refusee }
 enum StatutReservation { confirmee, annulee, enAttente }
 enum StatutPaiement { valide, enAttente, echec }
@@ -38,12 +38,13 @@ class Utilisateur {
       nom: json['nom'],
       prenom: json['prenom'],
       email: json['email'],
-      telephone: json['telephone'],
+      telephone: json['telephone'] ?? '',
       role: RoleUtilisateur.values.firstWhere(
         (r) => r.name == json['role'],
         orElse: () => RoleUtilisateur.locataire,
       ),
-      dateCreation: DateTime.parse(json['dateCreation']),
+
+      dateCreation: DateTime.parse(json['created_at'] ?? json['dateCreation'] ?? DateTime.now().toIso8601String()),
       avatar: json['avatar'],
     );
   }
@@ -166,8 +167,8 @@ class Bien {
         : json['statut'] == 'reserve'
             ? StatutBien.reserve
             : StatutBien.disponible,
-    typeLocation: json['type_location'] == 'courtTerme' || json['type_location'] == 'courte_duree'
-        ? TypeLocation.courtTerme
+    typeLocation: json['type_location'] == 'sejour' || json['type_location'] == 'sejour'
+        ? TypeLocation.sejour
         : TypeLocation.longTerme,
     localisation: Localisation.fromJson(json['localisation']),
     photos: List<String>.from(json['photos'] ?? []),
@@ -443,7 +444,7 @@ class DemoData {
             'Résidence de standing pour voyageurs. Chambre confortable avec AC, TV, wifi. Petit-déjeuner inclus.',
         prix: 15000,
         statut: StatutBien.disponible,
-        typeLocation: TypeLocation.courtTerme,
+        typeLocation: TypeLocation.sejour,
         localisation: Localisation(
           id: 4,
           ville: 'Ouagadougou',

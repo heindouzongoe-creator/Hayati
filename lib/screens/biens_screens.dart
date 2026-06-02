@@ -1,5 +1,6 @@
 // lib/screens/biens_screens.dart
 import 'package:flutter/material.dart';
+// ignore: library_prefixes
 import 'package:http/http.dart' as HttpService show post;
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -228,9 +229,9 @@ class _FiltresSheetState extends State<_FiltresSheet> {
                 const SizedBox(width: 8),
                 FilterChipWidget(
                   label: 'Court terme',
-                  isSelected: _typeLocation == TypeLocation.courtTerme,
+                  isSelected: _typeLocation == TypeLocation.sejour,
                   onTap: () => setState(
-                      () => _typeLocation = TypeLocation.courtTerme),
+                      () => _typeLocation = TypeLocation.sejour),
                 ),
               ],
             ),
@@ -243,12 +244,12 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               children: [
                 Expanded(
                   child: FilterChipWidget(
-                    label: '🌙 Nuit / Semaine',
-                    isSelected: _dureeSejour == 'court_terme',
+                    label: 'Nuit / Semaine',
+                    isSelected: _dureeSejour == 'sejour',
                     onTap: () => setState(() {
-                      _dureeSejour = _dureeSejour == 'court_terme'
+                      _dureeSejour = _dureeSejour == 'sejour'
                           ? null
-                          : 'court_terme';
+                          : 'sejour';
                     }),
                   ),
                 ),
@@ -267,7 +268,7 @@ class _FiltresSheetState extends State<_FiltresSheet> {
               ],
             ),
  
-            if (_dureeSejour == 'court_terme') ...[
+            if (_dureeSejour == 'sejour') ...[
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -862,7 +863,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                                   ),
                                   Text(
                                     bien.typeLocation ==
-                                            TypeLocation.courtTerme
+                                            TypeLocation.sejour
                                         ? 'par nuit'
                                         : 'par mois',
                                     style: const TextStyle(
@@ -1168,7 +1169,7 @@ class _BienDetailScreenState extends State<BienDetailScreen>
                   ),
                 ],
               ),
-              child: bien.typeLocation == TypeLocation.courtTerme
+              child: bien.typeLocation == TypeLocation.sejour
                   ? PrimaryButton(
                       label: 'Réserver maintenant',
                       onPressed:

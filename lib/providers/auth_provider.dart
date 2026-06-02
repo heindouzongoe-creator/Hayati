@@ -62,6 +62,9 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String telephone,
     required String motDePasse,
+    required String cnibNumero,
+    required String cnibPhotoPath,
+    required String selfiePhotoPath,
     required RoleUtilisateur role,
   }) async {
     _isLoading = true;
@@ -75,6 +78,9 @@ class AuthProvider extends ChangeNotifier {
         telephone: telephone,
         password: motDePasse,
         role: role == RoleUtilisateur.proprietaire ? 'proprietaire' : 'locataire',
+      cnibNumero: cnibNumero,
+      cnibPhotoPath: cnibPhotoPath,
+      selfiePhotoPath: selfiePhotoPath,
       );
       final data = res['data'];
       ApiService.setToken(data['token']);
