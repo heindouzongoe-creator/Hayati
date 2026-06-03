@@ -236,8 +236,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (picked != null) {
       setState(() {
-        if (isCnib) _cnibPhoto = File(picked.path);
-        else _selfiePhoto = File(picked.path);
+        if (isCnib) {
+          _cnibPhoto = File(picked.path);
+        } else {
+          _selfiePhoto = File(picked.path);
+        }
       });
     }
   }
@@ -455,7 +458,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(label, style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
                 if (onTapGallery != null) ...[
                   const SizedBox(height: 4),
-                  GestureDetector(onTap: onTapGallery, child: Text('ou choisir dans la galerie', style: TextStyle(color: HerressoTheme.primary, fontSize: 12, decoration: TextDecoration.underline))),
+                  GestureDetector(onTap: onTapGallery, child: const Text('ou choisir dans la galerie', style: TextStyle(color: HerressoTheme.primary, fontSize: 12, decoration: TextDecoration.underline))),
                 ],
               ]),
       ),

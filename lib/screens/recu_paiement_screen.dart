@@ -66,7 +66,7 @@ class RecuPaiementScreen extends StatelessWidget {
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                boxShadow:  [BoxShadow(color: Colors.black12, blurRadius: 8)],
               ),
               child: Column(
                 children: [

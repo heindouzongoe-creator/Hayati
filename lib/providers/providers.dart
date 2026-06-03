@@ -35,7 +35,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String telephone,
     required String motDePasse,
-    required RoleUtilisateur role,
+    required RoleUtilisateur role, required String cnibPhotoPath, required String cnibNumero, required String selfiePhotoPath,
   }) async {
     _isLoading = true;
     _error = null;

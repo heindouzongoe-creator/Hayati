@@ -222,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _typeLocationBtn(TypeLocation.courtTerme, 'Court terme'),
+                        child: _typeLocationBtn(TypeLocation.sejour, 'Sejour'),
                       ),
                     ],
                   ),
@@ -329,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final longTerme = provider.tousLesBiens
         .where((b) => b.typeLocation == TypeLocation.longTerme)
         .length;
-    final courtTerme = provider.tousLesBiens
-        .where((b) => b.typeLocation == TypeLocation.courtTerme)
+    final sejour = provider.tousLesBiens
+        .where((b) => b.typeLocation == TypeLocation.sejour)
         .length;
 
     return Row(
@@ -339,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 12),
         _statCard('$longTerme', 'Long terme', Icons.calendar_month_outlined, AppTheme.primary),
         const SizedBox(width: 12),
-        _statCard('$courtTerme', 'Court terme', Icons.bed_outlined, AppTheme.secondary),
+        _statCard('$sejour', 'Sejour', Icons.bed_outlined, AppTheme.secondary),
       ],
     );
   }

@@ -135,7 +135,7 @@ class BienCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${formatPrix(bien.prix)}${bien.typeLocation == TypeLocation.courtTerme ? '/nuit' : '/mois'}',
+                    '${formatPrix(bien.prix)}${bien.typeLocation == TypeLocation.sejour ? '/nuit' : '/mois'}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
@@ -253,13 +253,13 @@ class BienCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: bien.typeLocation == TypeLocation.courtTerme
+        color: bien.typeLocation == TypeLocation.sejour
             ? AppTheme.secondary
             : AppTheme.primary,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        bien.typeLocation == TypeLocation.courtTerme ? 'Court terme' : 'Long terme',
+        bien.typeLocation == TypeLocation.sejour ? 'Séjour' : 'Long terme',
         style: const TextStyle(
           color: Colors.white,
           fontSize: 10,

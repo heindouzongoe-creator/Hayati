@@ -1,8 +1,4 @@
-// lib/services/api_service.dart
-// Service centralisé pour tous les appels vers le backend Laravel de Herresso
-// Remplace baseUrl par l'adresse de ton serveur Laravel
-
-import 'dart:convert';
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -73,6 +69,9 @@ class ApiService {
         'password': password,
         'password_confirmation': password,
         'role': role,
+        'selfie_photo_path': selfiePhotoPath,
+        'cnib_photo_path': cnibPhotoPath,
+        'cnib_numero': cnibNumero,
       }),
     );
     return _handleResponse(response);
@@ -126,7 +125,7 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// GET /api/biens/{id}
+  
   /// Retourne le détail d'un bien
   static Future<Map<String, dynamic>> getBienDetail(int id) async {
     final response = await http.get(
@@ -136,8 +135,7 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// POST /api/biens
-  /// Corps : toutes les infos du bien
+  
   /// Réservé aux propriétaires
   static Future<Map<String, dynamic>> publierBien({
     required String titre,
@@ -189,7 +187,7 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// GET /api/mes-biens
+  
   /// Biens du propriétaire connecté
   static Future<Map<String, dynamic>> getMesBiens() async {
     final response = await http.get(

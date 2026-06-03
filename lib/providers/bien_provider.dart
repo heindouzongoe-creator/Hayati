@@ -22,7 +22,7 @@ class BienProvider extends ChangeNotifier {
     try {
       final res = await ApiService.getBiens(
         ville: _villeFiltre != 'Tous' ? _villeFiltre : null,
-        typeLocation: _typeLocationFiltre == TypeLocation.courtTerme
+        typeLocation: _typeLocationFiltre == TypeLocation.sejour
             ? 'courte_duree'
             : _typeLocationFiltre == TypeLocation.longTerme
                 ? 'longue_duree'

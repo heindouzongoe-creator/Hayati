@@ -448,7 +448,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                       children: [
                         Expanded(
                           child: FilterChipWidget(
-                            label: '🏠 Logement',
+                            label: ' Logement',
                             isSelected: _typeBien == TypeBien.logement,
                             onTap: () => setState(() => _typeBien = TypeBien.logement),
                           ),
@@ -456,7 +456,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: FilterChipWidget(
-                            label: '🏪 Local commercial',
+                            label: 'Local commercial',
                             isSelected: _typeBien == TypeBien.localCommercial,
                             onTap: () => setState(() => _typeBien = TypeBien.localCommercial),
                           ),
@@ -479,9 +479,9 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: FilterChipWidget(
-                            label: 'Court terme',
-                            isSelected: _typeLocation == TypeLocation.courtTerme,
-                            onTap: () => setState(() => _typeLocation = TypeLocation.courtTerme),
+                            label: 'Séjour',
+                            isSelected: _typeLocation == TypeLocation.sejour,
+                            onTap: () => setState(() => _typeLocation = TypeLocation.sejour),
                           ),
                         ),
                       ],
@@ -504,7 +504,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                       controller: _prixCtrl,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: _typeLocation == TypeLocation.courtTerme
+                        labelText: _typeLocation == TypeLocation.sejour
                             ? 'Prix par nuit (FCFA) *'
                             : 'Loyer mensuel (FCFA) *',
                       ),
@@ -580,7 +580,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                     ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      label: 'Publier mon bien',
+                      label: 'Publier une propriétée',
                       isLoading: _isLoading,
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) return;
@@ -592,7 +592,7 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                           // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Bien publié avec succès ! En attente de validation.'),
+                              content: Text(' Propriétée publiée avec succès ! En attente de validation.'),
                               backgroundColor: Color.fromARGB(255, 209, 97, 11),
                             ),
                           );
