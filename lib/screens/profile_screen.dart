@@ -1,4 +1,3 @@
-// lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -6,8 +5,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
-import 'kyc_screen.dart';
-//import 'recu_paiement_screen.dart';
+import '../services/api_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback onLogout;
@@ -44,115 +42,85 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('Mon profil'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Modifier le profil',
+            onPressed: () => _ouvrirModification(context, user, auth),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Déconnexion'),
-                  content: const Text('Voulez-vous vraiment vous déconnecter ?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Annuler'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        auth.logout();
-                        onLogout();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                      child: const Text('Déconnecter'),
-                    ),
-                  ],
-                ),
-              );
-            },
+            onPressed: () => _confirmerDeconnexion(context, auth),
           ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header profil
+            // ── Header profil ──
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppTheme.primary,
-                    child: Text(
-                      user.prenom.isNotEmpty ? user.prenom[0].toUpperCase() : 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                  // Avatar
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 45,
+                        backgroundColor: HerressoTheme.primary,
+                        child: Text(
+                          user.prenom.isNotEmpty ? user.prenom[0].toUpperCase() : 'U',
+                          style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _ouvrirModification(context, user, auth),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: HerressoTheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.edit, size: 14, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Text(
                     user.nomComplet,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
+                  // Badge rôle
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha:0.1),
+                      color: HerressoTheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      user.role == RoleUtilisateur.locataire
-                          ? '🏠 Locataire'
-                          : user.role == RoleUtilisateur.proprietaire
-                              ? '🏡 Propriétaire'
-                              : '🏢 Agence',
-                      style: const TextStyle(
-                        color: AppTheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      user.role == RoleUtilisateur.locataire ? '🏠 Locataire' : '🏡 Propriétaire',
+                      style: const TextStyle(color: HerressoTheme.primary, fontWeight: FontWeight.w600),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.email_outlined,
-                        size: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        user.email,
-                        style: const TextStyle(color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 14,
-                        color: AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        user.telephone,
-                        style: const TextStyle(color: AppTheme.textSecondary),
-                      ),
-                    ],
+
+                  // Infos contact
+                  if (user.email.isNotEmpty)
+                    _infoRow(Icons.email_outlined, user.email),
+                  if (user.telephone.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    _infoRow(Icons.phone_outlined, user.telephone),
+                  ],
+                  const SizedBox(height: 6),
+                  _infoRow(
+                    Icons.calendar_today_outlined,
+                    'Membre depuis ${DateFormat('MMMM yyyy', 'fr_FR').format(user.dateCreation)}',
                   ),
                 ],
               ),
@@ -160,12 +128,21 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // Notifications
-            _buildNotifications(),
+            // ── Infos du compte ──
+            _section(
+              titre: 'Informations du compte',
+              enfants: [
+                _infoTile('Nom', user.nom),
+                _infoTile('Prénom', user.prenom),
+                if (user.email.isNotEmpty) _infoTile('Email', user.email),
+                if (user.telephone.isNotEmpty) _infoTile('Téléphone', user.telephone),
+                _infoTile('Rôle', user.role == RoleUtilisateur.locataire ? 'Locataire' : 'Propriétaire'),
+              ],
+            ),
 
             const SizedBox(height: 8),
 
-            // Options
+            // ── Menu ──
             Container(
               color: Colors.white,
               child: Column(
@@ -173,80 +150,34 @@ class ProfileScreen extends StatelessWidget {
                   _menuItem(
                     icon: Icons.person_outline,
                     label: 'Modifier mon profil',
-                    onTap: () {},
+                    onTap: () => _ouvrirModification(context, user, auth),
                   ),
                   if (user.role == RoleUtilisateur.locataire) ...[
-                    _menuItem(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Mes visites',
-                      onTap: () {},
-                      badge: '2',
-                    ),
-                    _menuItem(
-                      icon: Icons.bookmark_outline,
-                      label: 'Mes réservations',
-                      onTap: () {},
-                    ),
-                    _menuItem(
-                      icon: Icons.description_outlined,
-                      label: 'Mes contrats',
-                      onTap: () {},
-                    ),
+                    _menuItem(icon: Icons.calendar_today_outlined, label: 'Mes visites', onTap: () {}, badge: '2'),
+                    _menuItem(icon: Icons.bookmark_outline, label: 'Mes réservations', onTap: () {}),
+                    _menuItem(icon: Icons.description_outlined, label: 'Mes contrats', onTap: () {}),
                   ],
                   if (user.role == RoleUtilisateur.proprietaire) ...[
-                    _menuItem(
-                      icon: Icons.home_outlined,
-                      label: 'Mes biens',
-                      onTap: () {},
-                    ),
-                    _menuItem(
-                      icon: Icons.add_home_outlined,
-                      label: 'Publier un bien',
-                      onTap: () => _showPublierBien(context),
-                    ),
+                    _menuItem(icon: Icons.home_outlined, label: 'Mes biens', onTap: () {}),
+                    _menuItem(icon: Icons.add_home_outlined, label: 'Publier un bien', onTap: () => _showPublierBien(context)),
                   ],
-                  _menuItem(
-                    icon: Icons.payment_outlined,
-                    label: 'Historique paiements',
-                    onTap: () {},
-                  ),
-                  _menuItem(
-                     icon: Icons.verified_user_outlined,
-                     label: 'Vérification du compte',
-                      onTap: () {
-                      Navigator.push(
-                       context,
-                        MaterialPageRoute(builder: (_) => const KycScreen()),
-                    );
-               },
-       ),
-                  _menuItem(
-                    icon: Icons.help_outline,
-                    label: 'Aide & Support',
-                    onTap: () {},
-                  ),
-                  _menuItem(
-                    icon: Icons.info_outline,
-                    label: 'À propos d\'Herresso',
-                    onTap: () {},
-                  ),
+                  _menuItem(icon: Icons.payment_outlined, label: 'Historique paiements', onTap: () {}),
+                  _menuItem(icon: Icons.help_outline, label: 'Aide & Support', onTap: () {}),
+                  _menuItem(icon: Icons.info_outline, label: "À propos d'Herresso", onTap: () {}),
                 ],
               ),
             ),
 
             const SizedBox(height: 8),
 
-            // Déconnexion
+            // ── Déconnexion ──
             Container(
               color: Colors.white,
               child: _menuItem(
                 icon: Icons.logout,
                 label: 'Se déconnecter',
                 color: Colors.red,
-                onTap: () {
-                  auth.logout();
-                  onLogout();
-                },
+                onTap: () => _confirmerDeconnexion(context, auth),
               ),
             ),
 
@@ -257,83 +188,51 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotifications() {
-    final notifs = [];
-    final nonLues = notifs.where((n) => !n.estLu).length;
+  Widget _infoRow(IconData icon, String texte) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 14, color: HerressoTheme.textSecondary),
+        const SizedBox(width: 6),
+        Text(texte, style: const TextStyle(color: HerressoTheme.textSecondary)),
+      ],
+    );
+  }
 
+  Widget _section({required String titre, required List<Widget> enfants}) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Text(
-                'Notifications',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(width: 8),
-              if (nonLues > 0)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$nonLues',
-                    style: const TextStyle(color: Colors.white, fontSize: 11),
-                  ),
-                ),
-            ],
-          ),
+          Text(titre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
-          ...notifs.take(3).map(
-            (n) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: n.estLu
-                      ? Colors.grey.shade100
-                      : AppTheme.primary.withValues(alpha:0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  color: n.estLu ? Colors.grey : AppTheme.primary,
-                  size: 20,
-                ),
-              ),
-              title: Text(
-                n.message,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: n.estLu ? FontWeight.normal : FontWeight.w600,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                _formatDate(n.dateEnvoi),
-                style: const TextStyle(fontSize: 11),
-              ),
-            ),
-          ),
+          ...enfants,
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-    if (diff.inHours < 1) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours}h';
-    return DateFormat('d MMM', 'fr_FR').format(date);
+  Widget _infoTile(String label, String valeur) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(label, style: const TextStyle(color: HerressoTheme.textSecondary, fontSize: 13)),
+          ),
+          Expanded(
+            child: Text(
+              valeur.isNotEmpty ? valeur : '—',
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _menuItem({
@@ -344,28 +243,48 @@ class ProfileScreen extends StatelessWidget {
     Color? color,
   }) {
     return ListTile(
-      leading: Icon(icon, color: color ?? AppTheme.primary),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: color ?? AppTheme.textPrimary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+      leading: Icon(icon, color: color ?? HerressoTheme.primary),
+      title: Text(label, style: TextStyle(color: color ?? HerressoTheme.textPrimary, fontWeight: FontWeight.w500)),
       trailing: badge != null
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppTheme.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                badge,
-                style: const TextStyle(color: Colors.white, fontSize: 11),
-              ),
+              decoration: BoxDecoration(color: HerressoTheme.primary, borderRadius: BorderRadius.circular(10)),
+              child: Text(badge, style: const TextStyle(color: Colors.white, fontSize: 11)),
             )
-          : const Icon(Icons.chevron_right, color: AppTheme.textLight),
+          : const Icon(Icons.chevron_right, color: HerressoTheme.textLight),
       onTap: onTap,
+    );
+  }
+
+  void _confirmerDeconnexion(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Déconnexion'),
+        content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              auth.logout();
+              onLogout();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Déconnecter'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _ouvrirModification(BuildContext context, Utilisateur user, AuthProvider auth) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _ModifierProfilSheet(user: user, auth: auth),
     );
   }
 
@@ -373,15 +292,158 @@ class ProfileScreen extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => const _PublierBienSheet(),
     );
   }
 }
 
-// ---- PUBLIER UN BIEN ----
+// ════════════════════════════════════════
+// MODIFIER PROFIL
+// ════════════════════════════════════════
+class _ModifierProfilSheet extends StatefulWidget {
+  final Utilisateur user;
+  final AuthProvider auth;
+
+  const _ModifierProfilSheet({required this.user, required this.auth});
+
+  @override
+  State<_ModifierProfilSheet> createState() => _ModifierProfilSheetState();
+}
+
+class _ModifierProfilSheetState extends State<_ModifierProfilSheet> {
+  late final TextEditingController _nomCtrl;
+  late final TextEditingController _prenomCtrl;
+  late final TextEditingController _emailCtrl;
+  late final TextEditingController _telCtrl;
+  bool _isLoading = false;
+  String? _erreur;
+
+  @override
+  void initState() {
+    super.initState();
+    _nomCtrl    = TextEditingController(text: widget.user.nom);
+    _prenomCtrl = TextEditingController(text: widget.user.prenom);
+    _emailCtrl  = TextEditingController(text: widget.user.email);
+    _telCtrl    = TextEditingController(text: widget.user.telephone);
+  }
+
+  @override
+  void dispose() {
+    _nomCtrl.dispose();
+    _prenomCtrl.dispose();
+    _emailCtrl.dispose();
+    _telCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sauvegarder() async {
+    setState(() { _isLoading = true; _erreur = null; });
+    try {
+      await ApiService.updateProfil(
+        nom: _nomCtrl.text.trim(),
+        prenom: _prenomCtrl.text.trim(),
+        telephone: _telCtrl.text.trim(),
+      );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profil mis à jour !'), backgroundColor: Colors.green),
+        );
+      }
+    } on ApiException catch (e) {
+      setState(() { _erreur = e.message; _isLoading = false; });
+    } catch (_) {
+      setState(() { _erreur = 'Erreur de connexion'; _isLoading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 20),
+            const Text('Modifier mon profil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+
+            // Nom & Prénom
+            Row(
+              children: [
+                Expanded(child: TextFormField(
+                  controller: _nomCtrl,
+                  decoration: const InputDecoration(labelText: 'Nom'),
+                  textCapitalization: TextCapitalization.characters,
+                )),
+                const SizedBox(width: 12),
+                Expanded(child: TextFormField(
+                  controller: _prenomCtrl,
+                  decoration: const InputDecoration(labelText: 'Prénom'),
+                )),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Email
+            TextFormField(
+              controller: _emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              enabled: false, // Email non modifiable pour sécurité
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email_outlined),
+                helperText: 'L\'email ne peut pas être modifié',
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Téléphone
+            TextFormField(
+              controller: _telCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Téléphone',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Erreur
+            if (_erreur != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.red.shade200)),
+                child: Row(children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(_erreur!, style: const TextStyle(color: Colors.red))),
+                ]),
+              ),
+
+            PrimaryButton(
+              label: 'Sauvegarder',
+              onPressed: _sauvegarder,
+              isLoading: _isLoading,
+              icon: Icons.save_outlined,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════
+// PUBLIER UN BIEN
+// ════════════════════════════════════════
 class _PublierBienSheet extends StatefulWidget {
   const _PublierBienSheet();
 
@@ -416,21 +478,9 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Publier un bien',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Publier un bien', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -441,162 +491,71 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Type bien
                     const Text('Type de bien', style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Expanded(
-                          child: FilterChipWidget(
-                            label: ' Logement',
-                            isSelected: _typeBien == TypeBien.logement,
-                            onTap: () => setState(() => _typeBien = TypeBien.logement),
-                          ),
-                        ),
+                        Expanded(child: FilterChipWidget(label: 'Logement', isSelected: _typeBien == TypeBien.logement, onTap: () => setState(() => _typeBien = TypeBien.logement))),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: FilterChipWidget(
-                            label: 'Local commercial',
-                            isSelected: _typeBien == TypeBien.localCommercial,
-                            onTap: () => setState(() => _typeBien = TypeBien.localCommercial),
-                          ),
-                        ),
+                        Expanded(child: FilterChipWidget(label: 'Local commercial', isSelected: _typeBien == TypeBien.localCommercial, onTap: () => setState(() => _typeBien = TypeBien.localCommercial))),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // Type location
                     const Text('Durée de location', style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Expanded(
-                          child: FilterChipWidget(
-                            label: 'Long terme',
-                            isSelected: _typeLocation == TypeLocation.longTerme,
-                            onTap: () => setState(() => _typeLocation = TypeLocation.longTerme),
-                          ),
-                        ),
+                        Expanded(child: FilterChipWidget(label: 'Long terme', isSelected: _typeLocation == TypeLocation.longTerme, onTap: () => setState(() => _typeLocation = TypeLocation.longTerme))),
                         const SizedBox(width: 8),
-                        Expanded(
-                          child: FilterChipWidget(
-                            label: 'Séjour',
-                            isSelected: _typeLocation == TypeLocation.sejour,
-                            onTap: () => setState(() => _typeLocation = TypeLocation.sejour),
-                          ),
-                        ),
+                        Expanded(child: FilterChipWidget(label: 'Séjour', isSelected: _typeLocation == TypeLocation.sejour, onTap: () => setState(() => _typeLocation = TypeLocation.sejour))),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _titreCtrl,
-                      decoration: const InputDecoration(labelText: 'Titre du bien *'),
-                      validator: (v) => v == null || v.isEmpty ? 'Titre requis' : null,
-                    ),
+                    TextFormField(controller: _titreCtrl, decoration: const InputDecoration(labelText: 'Titre du bien *'), validator: (v) => v == null || v.isEmpty ? 'Titre requis' : null),
                     const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _descCtrl,
-                      maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'Description *'),
-                      validator: (v) => v == null || v.isEmpty ? 'Description requise' : null,
-                    ),
+                    TextFormField(controller: _descCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Description *'), validator: (v) => v == null || v.isEmpty ? 'Description requise' : null),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _prixCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: _typeLocation == TypeLocation.sejour
-                            ? 'Prix par nuit (FCFA) *'
-                            : 'Loyer mensuel (FCFA) *',
-                      ),
+                      decoration: InputDecoration(labelText: _typeLocation == TypeLocation.sejour ? 'Prix par nuit (FCFA) *' : 'Loyer mensuel (FCFA) *'),
                       validator: (v) => v == null || v.isEmpty ? 'Prix requis' : null,
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _villeCtrl,
-                            decoration: const InputDecoration(labelText: 'Ville *'),
-                            validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-                          ),
-                        ),
+                        Expanded(child: TextFormField(controller: _villeCtrl, decoration: const InputDecoration(labelText: 'Ville *'), validator: (v) => v == null || v.isEmpty ? 'Requis' : null)),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _secteurCtrl,
-                            decoration: const InputDecoration(labelText: 'Secteur *'),
-                            validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-                          ),
-                        ),
+                        Expanded(child: TextFormField(controller: _secteurCtrl, decoration: const InputDecoration(labelText: 'Secteur *'), validator: (v) => v == null || v.isEmpty ? 'Requis' : null)),
                       ],
                     ),
                     const SizedBox(height: 16),
                     const Text('Équipements', style: TextStyle(fontWeight: FontWeight.w600)),
                     Row(
                       children: [
-                        Checkbox(
-                          value: _hasEau,
-                          onChanged: (v) => setState(() => _hasEau = v!),
-                          activeColor: AppTheme.primary,
-                        ),
+                        Checkbox(value: _hasEau, onChanged: (v) => setState(() => _hasEau = v!), activeColor: HerressoTheme.primary),
                         const Text('Eau'),
                         const SizedBox(width: 16),
-                        Checkbox(
-                          value: _hasElec,
-                          onChanged: (v) => setState(() => _hasElec = v!),
-                          activeColor: AppTheme.primary,
-                        ),
+                        Checkbox(value: _hasElec, onChanged: (v) => setState(() => _hasElec = v!), activeColor: HerressoTheme.primary),
                         const Text('Électricité'),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    // Photos placeholder
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: AppTheme.border,
-                            style: BorderStyle.solid,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate_outlined,
-                                  size: 36, color: AppTheme.textLight),
-                              SizedBox(height: 8),
-                              Text(
-                                'Ajouter des photos',
-                                style: TextStyle(color: AppTheme.textSecondary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 24),
                     PrimaryButton(
-                      label: 'Publier une propriétée',
+                      label: 'Publier le bien',
                       isLoading: _isLoading,
                       onPressed: () async {
                         if (!_formKey.currentState!.validate()) return;
                         setState(() => _isLoading = true);
                         await Future.delayed(const Duration(seconds: 1));
-                        if (mounted) {
-                          // ignore: use_build_context_synchronously
-                          Navigator.pop(context);
-                          // ignore: use_build_context_synchronously
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(' Propriétée publiée avec succès ! En attente de validation.'),
-                              backgroundColor: Color.fromARGB(255, 209, 97, 11),
-                            ),
-                          );
-                        }
+                        if (!mounted) return;
+                        final navigationContext = context;
+                        // ignore: use_build_context_synchronously
+                        Navigator.pop(navigationContext);
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(navigationContext).showSnackBar(
+                          const SnackBar(content: Text('Bien publié ! En attente de validation.'), backgroundColor: HerressoTheme.primary),
+                        );
                       },
                       icon: Icons.publish,
                     ),
@@ -610,6 +569,4 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
       ),
     );
   }
-
- 
 }

@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
+import 'dart:io';
 import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -16,45 +17,55 @@ class AuthProvider extends ChangeNotifier {
   bool get isLocataire => _currentUser?.role == RoleUtilisateur.locataire;
   bool get isProprietaire => _currentUser?.role == RoleUtilisateur.proprietaire;
 
-  Future<bool> login(String email, String motDePasse) async {
-    _isLoading = true;
-    _error = null;
+  Future<bool> login(String identifiant, String motDePasse) async {
+  _isLoading = true;
+  _error = null;
+  notifyListeners();
+
+  try {
+    final result = await ApiService.login(
+      identifiant: identifiant,
+      password: motDePasse,
+    );
+    ApiService.setToken(result['data']['token']);
+    _currentUser = Utilisateur.fromJson(result['data']['user']);
+
+    // ── Sauvegarde locale ──
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', result['data']['token']);
+    await prefs.setString('dernier_identifiant', identifiant);
+
+    _isLoading = false;
     notifyListeners();
+    return true;
+  } on ApiException catch (e) {
+    _error = e.message;
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  } catch (e) {
+    _error = 'Erreur de connexion au serveur';
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
+}
+Future<void> chargerSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+  if (token != null) {
+    ApiService.setToken(token);
     try {
-      final res = await ApiService.login(email: email, password: motDePasse);
-      final data = res['data'];
-      // Sauvegarde le token
-      ApiService.setToken(data['token']);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      // Construit l'utilisateur
-      final u = data['user'];
-      _currentUser = Utilisateur(
-        id: u['id'],
-        nom: u['nom'],
-        prenom: u['prenom'],
-        email: u['email'],
-        telephone: u['telephone'] ?? '',
-        role: u['role'] == 'proprietaire'
-            ? RoleUtilisateur.proprietaire
-            : RoleUtilisateur.locataire,
-        dateCreation: DateTime.parse(u['created_at']),
-      );
-      _isLoading = false;
+      final result = await ApiService.getMe();
+      _currentUser = Utilisateur.fromJson(result['data']);
       notifyListeners();
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _error = 'Erreur de connexion. Vérifiez votre réseau.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
+    } catch (_) {
+      // Token expiré — on nettoie
+      await prefs.remove('token');
+      ApiService.clearToken();
     }
   }
+}
 
   Future<bool> register({
     required String nom,
@@ -63,8 +74,8 @@ class AuthProvider extends ChangeNotifier {
     required String telephone,
     required String motDePasse,
     required String cnibNumero,
-    required String cnibPhotoPath,
-    required String selfiePhotoPath,
+    required File cnibPhotoPath,
+    required File selfiePhotoPath,
     required RoleUtilisateur role,
   }) async {
     _isLoading = true;
@@ -79,8 +90,8 @@ class AuthProvider extends ChangeNotifier {
         password: motDePasse,
         role: role == RoleUtilisateur.proprietaire ? 'proprietaire' : 'locataire',
       cnibNumero: cnibNumero,
-      cnibPhotoPath: cnibPhotoPath,
-      selfiePhotoPath: selfiePhotoPath,
+      cnibPhoto: cnibPhotoPath,
+      selfiePhoto: selfiePhotoPath,
       );
       final data = res['data'];
       ApiService.setToken(data['token']);
@@ -112,6 +123,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+Future<void> reloadUser() async {
+  try {
+    final result = await ApiService.getMe();
+    _currentUser = Utilisateur.fromJson(result['data']);
+    notifyListeners();
+  } catch (_) {}
+}
   Future<void> logout() async {
     try {
       await ApiService.logout();

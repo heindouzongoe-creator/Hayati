@@ -9,11 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:herresso/main.dart';
+import 'package:herresso/providers/providers.dart';
 
 void main() {
   testWidgets('App launches smoke test', (WidgetTester tester) async {
     // Build the Herresso app and trigger a frame.
-    await tester.pumpWidget(const HerressoApp());
+    await tester.pumpWidget(HerressoApp(authProvider: AuthProvider()));
 
     // Verify that the app renders a MaterialApp.
     expect(find.byType(MaterialApp), findsOneWidget);

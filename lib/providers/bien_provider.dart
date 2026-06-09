@@ -1,4 +1,3 @@
-// lib/providers/bien_provider.dart
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 import '../services/api_service.dart';
@@ -23,9 +22,9 @@ class BienProvider extends ChangeNotifier {
       final res = await ApiService.getBiens(
         ville: _villeFiltre != 'Tous' ? _villeFiltre : null,
         typeLocation: _typeLocationFiltre == TypeLocation.sejour
-            ? 'courte_duree'
+            ? 'sejour'
             : _typeLocationFiltre == TypeLocation.longTerme
-                ? 'longue_duree'
+                ? 'long_terme'
                 : null,
         prixMax: _prixMax,
         search: _searchQuery.isNotEmpty ? _searchQuery : null,

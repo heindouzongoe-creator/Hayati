@@ -1,110 +1,89 @@
 import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Mets ici l'URL de ton backend Laravel
-  // En local avec Laragon : http://10.0.2.2:8000/api   (pour émulateur Android)
-  // En production          : https://ton-domaine.com/api
   static const String baseUrl = 'http://10.0.2.2:8000/api';
-
-  // Token d'authentification Sanctum — mis à jour après login
   static String? _token;
 
-  // ─────────────────────────────────────────
-  // 🔧 HEADERS
-  // ─────────────────────────────────────────
-
   static Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
-  static void setToken(String token) {
-    _token = token;
-  }
-
-  static void clearToken() {
-    _token = null;
-  }
+  static void setToken(String token) => _token = token;
+  static void clearToken() => _token = null;
 
   // ─────────────────────────────────────────
-  //  AUTHENTIFICATION
+  // AUTHENTIFICATION
   // ─────────────────────────────────────────
 
-  /// POST /api/login
-  /// Corps : { email, password }
-  /// Retourne : { token, user }
   static Future<Map<String, dynamic>> login({
-    required String email,
+    required String identifiant,
     required String password,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
-      headers: _headers,
-      body: jsonEncode({'email': email, 'password': password}),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'identifiant': identifiant, 'password': password}),
     );
     return _handleResponse(response);
   }
 
-  /// POST /api/register
-  /// Corps : { nom, prenom, email, telephone, password, password_confirmation, role }
-  /// Retourne : { token, user }
+  /// register envoie les photos en multipart/form-data
   static Future<Map<String, dynamic>> register({
     required String nom,
     required String prenom,
-    required String email,
-    required String telephone,
+    String? email,
+    String? telephone,
     required String password,
-    required String role, required String selfiePhotoPath, required String cnibPhotoPath, required String cnibNumero, // 'locataire' ou 'proprietaire'
+    required String role,
+    required String cnibNumero,
+    required File cnibPhoto,
+    required File selfiePhoto,
   }) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/register'),
-      headers: _headers,
-      body: jsonEncode({
-        'nom': nom,
-        'prenom': prenom,
-        'email': email,
-        'telephone': telephone,
-        'password': password,
-        'password_confirmation': password,
-        'role': role,
-        'selfie_photo_path': selfiePhotoPath,
-        'cnib_photo_path': cnibPhotoPath,
-        'cnib_numero': cnibNumero,
-      }),
-    );
+    final uri = Uri.parse('$baseUrl/register');
+    final request = http.MultipartRequest('POST', uri);
+
+    // Headers
+    request.headers.addAll(_headers);
+
+    // Champs texte
+    request.fields['nom'] = nom;
+    request.fields['prenom'] = prenom;
+    if (email != null) request.fields['email'] = email;
+    if (telephone != null) request.fields['telephone'] = telephone;
+    request.fields['password'] = password;
+    request.fields['role'] = role;
+    request.fields['cnib_numero'] = cnibNumero;
+
+    // Photos
+    request.files.add(await http.MultipartFile.fromPath('cnib_photo', cnibPhoto.path));
+    request.files.add(await http.MultipartFile.fromPath('selfie_photo', selfiePhoto.path));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
     return _handleResponse(response);
   }
 
-  /// POST /api/logout
-  /// Retourne : { message }
   static Future<Map<String, dynamic>> logout() async {
     final response = await http.post(
       Uri.parse('$baseUrl/logout'),
-      headers: _headers,
+      headers: {..._headers, 'Content-Type': 'application/json'},
     );
     clearToken();
     return _handleResponse(response);
   }
 
-  /// GET /api/me
-  /// Retourne le profil de l'utilisateur connecté
   static Future<Map<String, dynamic>> getMe() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/me'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/me'), headers: _headers);
     return _handleResponse(response);
   }
 
   // ─────────────────────────────────────────
-  // BIENS IMMOBILIERS
+  // BIENS
   // ─────────────────────────────────────────
 
-  /// GET /api/biens
-  /// Paramètres optionnels : ville, type_location, prix_max, search
-  /// Retourne : { data: [Bien], total, page }
   static Future<Map<String, dynamic>> getBiens({
     String? ville,
     String? typeLocation,
@@ -119,24 +98,16 @@ class ApiService {
       if (prixMax != null) 'prix_max': prixMax.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
     };
-
     final uri = Uri.parse('$baseUrl/biens').replace(queryParameters: params);
     final response = await http.get(uri, headers: _headers);
     return _handleResponse(response);
   }
 
-  
-  /// Retourne le détail d'un bien
   static Future<Map<String, dynamic>> getBienDetail(int id) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/biens/$id'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/biens/$id'), headers: _headers);
     return _handleResponse(response);
   }
 
-  
-  /// Réservé aux propriétaires
   static Future<Map<String, dynamic>> publierBien({
     required String titre,
     required String description,
@@ -144,8 +115,8 @@ class ApiService {
     required String secteur,
     required String quartier,
     required double prix,
-    required String typeLocation, // 'courte_duree' | 'longue_duree'
-    required String typeBien,     // 'villa' | 'appartement' | 'cours_commune' | ...
+    required String typeLocation,
+    required String typeBien,
     required int nombreChambres,
     required int nombreSallesDeBain,
     bool? climatisation,
@@ -156,7 +127,7 @@ class ApiService {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/biens'),
-      headers: _headers,
+      headers: {..._headers, 'Content-Type': 'application/json'},
       body: jsonEncode({
         'titre': titre,
         'description': description,
@@ -178,40 +149,29 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// DELETE /api/biens/{id}
   static Future<Map<String, dynamic>> supprimerBien(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/biens/$id'),
-      headers: _headers,
-    );
+    final response = await http.delete(Uri.parse('$baseUrl/biens/$id'), headers: _headers);
     return _handleResponse(response);
   }
 
-  
-  /// Biens du propriétaire connecté
   static Future<Map<String, dynamic>> getMesBiens() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/mes-biens'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/mes-biens'), headers: _headers);
     return _handleResponse(response);
   }
 
   // ─────────────────────────────────────────
-  //  RÉSERVATIONS
+  // RÉSERVATIONS
   // ─────────────────────────────────────────
 
-  /// POST /api/reservations
-  /// Corps : { bien_id, date_debut, date_fin, mode_paiement }
   static Future<Map<String, dynamic>> creerReservation({
     required int bienId,
-    required String dateDebut,   // format: 'YYYY-MM-DD'
-    required String dateFin,     // format: 'YYYY-MM-DD'
-    required String modePaiement, // 'orange_money' | 'moov_money' | 'coris_money'
+    required String dateDebut,
+    required String dateFin,
+    required String modePaiement,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/reservations'),
-      headers: _headers,
+      headers: {..._headers, 'Content-Type': 'application/json'},
       body: jsonEncode({
         'bien_id': bienId,
         'date_debut': dateDebut,
@@ -222,21 +182,13 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// GET /api/mes-reservations
   static Future<Map<String, dynamic>> getMesReservations() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/mes-reservations'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/mes-reservations'), headers: _headers);
     return _handleResponse(response);
   }
 
-  /// PATCH /api/reservations/{id}/annuler
   static Future<Map<String, dynamic>> annulerReservation(int id) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/reservations/$id/annuler'),
-      headers: _headers,
-    );
+    final response = await http.patch(Uri.parse('$baseUrl/reservations/$id/annuler'), headers: _headers);
     return _handleResponse(response);
   }
 
@@ -244,17 +196,15 @@ class ApiService {
   // VISITES
   // ─────────────────────────────────────────
 
-  /// POST /api/visites
-  /// Corps : { bien_id, date_visite, heure_visite, message }
   static Future<Map<String, dynamic>> demanderVisite({
     required int bienId,
-    required String dateVisite,  // format: 'YYYY-MM-DD'
-    required String heureVisite, // format: 'HH:MM'
+    required String dateVisite,
+    required String heureVisite,
     String? message,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/visites'),
-      headers: _headers,
+      headers: {..._headers, 'Content-Type': 'application/json'},
       body: jsonEncode({
         'bien_id': bienId,
         'date_visite': dateVisite,
@@ -265,12 +215,8 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// GET /api/mes-visites
   static Future<Map<String, dynamic>> getMesVisites() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/mes-visites'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/mes-visites'), headers: _headers);
     return _handleResponse(response);
   }
 
@@ -278,51 +224,34 @@ class ApiService {
   // NOTIFICATIONS
   // ─────────────────────────────────────────
 
-  /// GET /api/notifications
   static Future<Map<String, dynamic>> getNotifications() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/notifications'),
-      headers: _headers,
-    );
+    final response = await http.get(Uri.parse('$baseUrl/notifications'), headers: _headers);
     return _handleResponse(response);
   }
 
-  /// PATCH /api/notifications/{id}/lire
   static Future<Map<String, dynamic>> marquerNotificationLue(int id) async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/notifications/$id/lire'),
-      headers: _headers,
-    );
+    final response = await http.patch(Uri.parse('$baseUrl/notifications/$id/lire'), headers: _headers);
     return _handleResponse(response);
   }
 
-  /// PATCH /api/notifications/lire-tout
   static Future<Map<String, dynamic>> marquerToutesLues() async {
-    final response = await http.patch(
-      Uri.parse('$baseUrl/notifications/lire-tout'),
-      headers: _headers,
-    );
+    final response = await http.patch(Uri.parse('$baseUrl/notifications/lire-tout'), headers: _headers);
     return _handleResponse(response);
   }
 
   // ─────────────────────────────────────────
-  // AVIS / NOTATION
+  // AVIS
   // ─────────────────────────────────────────
 
-  /// POST /api/biens/{id}/avis
-  /// Corps : { note, commentaire }
   static Future<Map<String, dynamic>> laisserAvis({
     required int bienId,
-    required double note,       // entre 1.0 et 5.0
+    required double note,
     required String commentaire,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/biens/$bienId/avis'),
-      headers: _headers,
-      body: jsonEncode({
-        'note': note,
-        'commentaire': commentaire,
-      }),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'note': note, 'commentaire': commentaire}),
     );
     return _handleResponse(response);
   }
@@ -331,8 +260,6 @@ class ApiService {
   // PROFIL
   // ─────────────────────────────────────────
 
-  /// PUT /api/profil
-  /// Corps : champs à mettre à jour
   static Future<Map<String, dynamic>> updateProfil({
     String? nom,
     String? prenom,
@@ -340,7 +267,7 @@ class ApiService {
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/profil'),
-      headers: _headers,
+      headers: {..._headers, 'Content-Type': 'application/json'},
       body: jsonEncode({
         if (nom != null) 'nom': nom,
         if (prenom != null) 'prenom': prenom,
@@ -350,35 +277,27 @@ class ApiService {
     return _handleResponse(response);
   }
 
-/// Enregistre le token FCM de l'appareil
-static Future<Map<String, dynamic>> saveFcmToken(String token) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl/notifications/token'),
-    headers: _headers,
-    body: jsonEncode({'fcm_token': token}),
-  );
-  return _handleResponse(response);
-}
+  static Future<Map<String, dynamic>> saveFcmToken(String token) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/notifications/token'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'fcm_token': token}),
+    );
+    return _handleResponse(response);
+  }
 
   // ─────────────────────────────────────────
-  //  GESTION DES RÉPONSES
+  // GESTION DES RÉPONSES
   // ─────────────────────────────────────────
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     final body = jsonDecode(response.body);
-
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      // Succès
       return {'success': true, 'data': body};
     } else if (response.statusCode == 401) {
-      // Non authentifié
       clearToken();
-      throw ApiException(
-        message: 'Session expirée. Veuillez vous reconnecter.',
-        statusCode: 401,
-      );
+      throw ApiException(message: 'Session expirée. Veuillez vous reconnecter.', statusCode: 401);
     } else if (response.statusCode == 422) {
-      // Erreurs de validation Laravel
       final errors = body['errors'] as Map<String, dynamic>?;
       final firstError = errors?.values.first;
       throw ApiException(
@@ -387,38 +306,21 @@ static Future<Map<String, dynamic>> saveFcmToken(String token) async {
         errors: errors,
       );
     } else if (response.statusCode == 403) {
-      throw ApiException(
-        message: 'Accès non autorisé.',
-        statusCode: 403,
-      );
+      throw ApiException(message: 'Accès non autorisé.', statusCode: 403);
     } else if (response.statusCode == 404) {
-      throw ApiException(
-        message: 'Ressource introuvable.',
-        statusCode: 404,
-      );
+      throw ApiException(message: 'Ressource introuvable.', statusCode: 404);
     } else {
-      throw ApiException(
-        message: body['message'] ?? 'Erreur serveur.',
-        statusCode: response.statusCode,
-      );
+      throw ApiException(message: body['message'] ?? 'Erreur serveur.', statusCode: response.statusCode);
     }
   }
 }
-
-// ─────────────────────────────────────────
-// CLASSE D'ERREUR PERSONNALISÉE
-// ─────────────────────────────────────────
 
 class ApiException implements Exception {
   final String message;
   final int statusCode;
   final Map<String, dynamic>? errors;
 
-  ApiException({
-    required this.message,
-    required this.statusCode,
-    this.errors,
-  });
+  ApiException({required this.message, required this.statusCode, this.errors});
 
   @override
   String toString() => 'ApiException($statusCode): $message';

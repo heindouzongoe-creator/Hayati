@@ -1,5 +1,3 @@
-// Commentaire inutile
-
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,28 +14,36 @@ import 'services/notification_service.dart';
 
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Charge la session sauvegardée
+  final authProvider = AuthProvider();
+  await authProvider.chargerSession();
+  
   try {
-  await NotificationService.init();
-} catch (e) {
-  debugPrint('Firebase non configuré : $e');
-}
+    await NotificationService.init();
+  } catch (e) {
+    debugPrint('Firebase non configuré : $e');
+  }
+  
   await initializeDateFormatting('fr_FR', null);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const HerressoApp());
+  
+  runApp(HerressoApp(authProvider: authProvider));
 }
-
 class HerressoApp extends StatelessWidget {
-  const HerressoApp({super.key});
+  final AuthProvider authProvider;
+  
+  const HerressoApp({super.key, required this.authProvider});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => BienProvider()),
       ],
       child: MaterialApp(

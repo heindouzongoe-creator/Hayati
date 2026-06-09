@@ -153,39 +153,56 @@ class Bien {
 
   bool get estDisponible => statut == StatutBien.disponible;
 
-  factory Bien.fromJson(Map<String, dynamic> json) {
+ factory Bien.fromJson(Map<String, dynamic> json) {
+  // Localisation : soit objet séparé soit champs directs
+  final Localisation localisation;
+  if (json['localisation'] != null) {
+    localisation = Localisation.fromJson(json['localisation']);
+  } else {
+    localisation = Localisation(
+      id: json['id'] ?? 0,
+      ville: json['ville'] ?? '',
+      secteur: json['secteur'] ?? '',
+      adresse: json['quartier'] ?? json['secteur'] ?? '',
+    );
+  }
+
   return Bien(
     id: json['id'],
-    typeBien: json['type_bien'] == 'localCommercial'
+    typeBien: json['type_bien'] == 'local_commercial'
         ? TypeBien.localCommercial
         : TypeBien.logement,
-    titre: json['titre'],
-    description: json['description'],
+    titre: json['titre'] ?? '',
+    description: json['description'] ?? '',
     prix: (json['prix'] as num).toDouble(),
-    statut: json['statut'] == 'louer'
+    statut: json['statut'] == 'loue'
         ? StatutBien.louer
         : json['statut'] == 'reserve'
             ? StatutBien.reserve
             : StatutBien.disponible,
-    typeLocation: json['type_location'] == 'sejour' || json['type_location'] == 'sejour'
+    typeLocation: json['type_location'] == 'sejour'
         ? TypeLocation.sejour
         : TypeLocation.longTerme,
-    localisation: Localisation.fromJson(json['localisation']),
+    localisation: localisation,
     photos: List<String>.from(json['photos'] ?? []),
-    caracteristiques: (json['caracteristiques'] as List? ?? [])
-        .map((c) => Caracteristique.fromJson(c))
-        .toList(),
-    proprietaireId: json['proprietaire_id'] ?? json['proprietaireId'],
-    proprietaireNom: json['proprietaire_nom'] ?? json['proprietaireNom'] ?? '',
-    proprietaireTelephone: json['proprietaire_telephone'] ?? json['proprietaireTelephone'] ?? '',
-    note: (json['note'] as num?)?.toDouble(),
-    nombreAvis: json['nombre_avis'] ?? json['nombreAvis'] ?? 0,
-    nombreChambres: json['nombre_chambres'] ?? json['nombreChambres'],
-    hasEau: json['eau'] ?? json['hasEau'] ?? false,
-    hasElectricite: json['electricite'] ?? json['hasElectricite'] ?? false,
-    datePublication: DateTime.parse(json['created_at'] ?? json['datePublication'] ?? DateTime.now().toIso8601String()),
+    caracteristiques: [],
+    proprietaireId: json['utilisateur_id'] ?? json['proprietaire_id'] ?? 0,
+    proprietaireNom: json['proprietaire'] != null
+        ? '${json['proprietaire']['prenom']} ${json['proprietaire']['nom']}'
+        : '',
+    proprietaireTelephone: json['proprietaire'] != null
+        ? json['proprietaire']['telephone'] ?? ''
+        : '',
+    note: (json['note_moyenne'] as num?)?.toDouble(),
+    nombreAvis: json['nombre_avis'] ?? 0,
+    nombreChambres: json['nombre_chambres'],
+    hasEau: json['eau'] ?? false,
+    hasElectricite: json['electricite'] ?? false,
+    datePublication: DateTime.parse(
+      json['created_at'] ?? DateTime.now().toIso8601String(),
+    ),
   );
-  }
+}
 }
 
 class OffreLocation {

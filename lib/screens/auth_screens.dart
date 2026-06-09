@@ -1,13 +1,15 @@
-// lib/screens/auth/login_screen.dart
+// lib/screens/auth_screens.dart
 import 'package:flutter/material.dart';
+import 'package:herresso/widgets/cnib_form_widget.dart';
 import 'package:provider/provider.dart';
-import '../../providers/providers.dart';
-import '../../theme.dart';
-import '../../widgets/widgets.dart';
+import '../providers/providers.dart';
+import '../theme.dart';
+import '../widgets/widgets.dart';
 import 'package:herresso/models/models.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../widgets/phone_field.dart';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
@@ -16,6 +18,9 @@ class UpperCaseTextFormatter extends TextInputFormatter {
   }
 }
 
+// ════════════════════════════════════════
+// LOGIN SCREEN
+// ════════════════════════════════════════
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
   final VoidCallback onGoRegister;
@@ -33,20 +38,34 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
+  final _telCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  String _telephone = '';
   bool _showPassword = false;
 
   @override
   void dispose() {
     _emailCtrl.dispose();
+    _telCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_emailCtrl.text.trim().isEmpty && _telephone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Renseignez votre email ou votre numéro de téléphone'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(_emailCtrl.text.trim(), _passwordCtrl.text);
+    final identifiant = _emailCtrl.text.trim().isNotEmpty
+        ? _emailCtrl.text.trim()
+        : _telephone;
+    final success = await auth.login(identifiant, _passwordCtrl.text);
     if (success && mounted) {
       widget.onLoginSuccess();
     }
@@ -88,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(color: HerressoTheme.textSecondary),
                 ),
                 const SizedBox(height: 48),
-                // Champs
+
+                // ── Email ──
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
@@ -96,9 +116,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (v) => v == null || v.isEmpty ? 'Email requis' : null,
+                  validator: (v) {
+                    if ((v == null || v.isEmpty) && _telephone.isEmpty) {
+                      return 'Email ou téléphone requis';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // ── Séparateur OU ──
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('OU', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // ── Téléphone avec indicatif ──
+                PhoneFieldWidget(
+                  controller: _telCtrl,
+                  onChanged: (numeroComplet) {
+                    setState(() => _telephone = numeroComplet);
+                  },
+                  validator: (_) => null,
                 ),
                 const SizedBox(height: 16),
+
+                // ── Mot de passe ──
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: !_showPassword,
@@ -106,15 +156,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Mot de passe',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _showPassword ? Icons.visibility_off : Icons.visibility,
-                      ),
+                      icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
                       onPressed: () => setState(() => _showPassword = !_showPassword),
                     ),
                   ),
-                  validator: (v) => v == null || v.length < 4
-                      ? 'Minimum 4 caractères'
-                      : null,
+                  validator: (v) => v == null || v.length < 4 ? 'Minimum 4 caractères' : null,
                 ),
                 const SizedBox(height: 8),
                 Align(
@@ -125,6 +171,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // ── Erreur ──
                 Consumer<AuthProvider>(
                   builder: (ctx, auth, _) {
                     if (auth.error != null) {
@@ -141,10 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             children: [
                               const Icon(Icons.error_outline, color: Colors.red, size: 20),
                               const SizedBox(width: 8),
-                              Text(
-                                auth.error!,
-                                style: const TextStyle(color: Colors.red),
-                              ),
+                              Expanded(child: Text(auth.error!, style: const TextStyle(color: Colors.red))),
                             ],
                           ),
                         ),
@@ -153,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     return const SizedBox.shrink();
                   },
                 ),
+
                 Consumer<AuthProvider>(
                   builder: (ctx, auth, _) => PrimaryButton(
                     label: 'Se connecter',
@@ -168,15 +214,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text('Pas encore de compte ? '),
                     TextButton(
                       onPressed: widget.onGoRegister,
-                      child: const Text(
-                        "S'inscrire",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: const Text("S'inscrire", style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Continuer sans compte
                 OutlinedButton.icon(
                   onPressed: widget.onLoginSuccess,
                   icon: const Icon(Icons.visibility_outlined),
@@ -194,10 +236,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ---- REGISTER ----
+// ════════════════════════════════════════
+// REGISTER SCREEN
+// ════════════════════════════════════════
+
+
 class RegisterScreen extends StatefulWidget {
   final VoidCallback onSuccess;
   final VoidCallback onGoLogin;
+  
 
   const RegisterScreen({
     super.key,
@@ -213,36 +260,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomCtrl = TextEditingController();
   final _prenomCtrl = TextEditingController();
-  final _identifiantCtrl = TextEditingController();
-  final _cnibNumeroCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _telCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  String _telephone = '';
   RoleUtilisateur _role = RoleUtilisateur.locataire;
   bool _showPassword = false;
-  File? _cnibPhoto;
   File? _selfiePhoto;
+  CnibFormData? _cnibData;
 
   @override
   void dispose() {
     _nomCtrl.dispose();
     _prenomCtrl.dispose();
-    _identifiantCtrl.dispose();
-    _cnibNumeroCtrl.dispose();
+    _emailCtrl.dispose();
+    _telCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage(bool isCnib) async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) {
-      setState(() {
-        if (isCnib) {
-          _cnibPhoto = File(picked.path);
-        } else {
-          _selfiePhoto = File(picked.path);
-        }
-      });
-    }
   }
 
   Future<void> _takeSelfie() async {
@@ -255,15 +289,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (picked != null) setState(() => _selfiePhoto = File(picked.path));
   }
 
+  Future<void> _pickSelfieGallery() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) setState(() => _selfiePhoto = File(picked.path));
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_cnibPhoto == null) {
+    // Vérifie qu'au moins email ou téléphone est renseigné
+if (_emailCtrl.text.trim().isEmpty && _telCtrl.text.trim().isEmpty) {
+  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    content: Text('Renseignez au moins un email ou un numéro de téléphone'),
+    backgroundColor: Colors.red,
+  ));
+  return;
+}
+
+    if (_cnibData?.photoCnib == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('La photo de la CNIB est obligatoire'),
         backgroundColor: Colors.red,
       ));
       return;
     }
+
     if (_selfiePhoto == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Le selfie est obligatoire'),
@@ -271,18 +321,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ));
       return;
     }
+
     final auth = context.read<AuthProvider>();
-    final identifiant = _identifiantCtrl.text.trim();
-    final isEmail = identifiant.contains('@');
     final success = await auth.register(
       nom: _nomCtrl.text.trim(),
       prenom: _prenomCtrl.text.trim(),
-      email: isEmail ? identifiant : '',
-      telephone: isEmail ? '' : identifiant,
+      email: _emailCtrl.text.trim(),
+      telephone: _telephone,
       motDePasse: _passwordCtrl.text,
       role: _role,
-      cnibNumero: _cnibNumeroCtrl.text.trim(),
-      cnibPhotoPath: _cnibPhoto!.path,
+      cnibNumero: _cnibData?.numero ?? '',
+      cnibPhotoPath: _cnibData!.photoCnib!.path,
       selfiePhotoPath: _selfiePhoto!.path,
     );
     if (success && mounted) widget.onSuccess();
@@ -307,6 +356,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 4),
               const Text('Créez votre compte gratuitement', style: TextStyle(color: HerressoTheme.textSecondary)),
               const SizedBox(height: 24),
+
+              // ── Rôle ──
               const Text('Je suis :', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               const SizedBox(height: 8),
               Row(
@@ -317,45 +368,60 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
               ),
               const SizedBox(height: 24),
+
+              // ── Nom & Prénom ──
               Row(
                 children: [
+                  Expanded(child: TextFormField(
+                    controller: _nomCtrl,
+                    decoration: const InputDecoration(labelText: 'Nom'),
+                    inputFormatters: [UpperCaseTextFormatter()],
+                    validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
+                  )),
+                  const SizedBox(width: 12),
                   Expanded(child: TextFormField(
                     controller: _prenomCtrl,
                     decoration: const InputDecoration(labelText: 'Prénom'),
                     validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
                   )),
-                  const SizedBox(width: 12),
-                  Expanded(child: TextFormField(
-                    controller: _nomCtrl,
-                    decoration: const InputDecoration(labelText: 'Nom'),
-                    validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-                    inputFormatters: [UpperCaseTextFormatter()],
-                  )),
                 ],
               ),
               const SizedBox(height: 16),
+
+              // ── Email ──
               TextFormField(
-                controller: _identifiantCtrl,
+                controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: 'Email ou Téléphone',
-                  prefixIcon: Icon(Icons.contact_page_outlined),
-                  hintText: 'ex: nom@email.com ou +226 70 00 00 00',
+                  labelText: 'Email (optionnel si téléphone renseigné)',
+                  prefixIcon: Icon(Icons.email_outlined),
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Email ou téléphone requis' : null,
+              ),
+              const SizedBox(height: 12),
+
+              // ── Séparateur OU ──
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('OU', style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // ── Téléphone avec indicatif ──
+              PhoneFieldWidget(
+                controller: _telCtrl,
+                onChanged: (numeroComplet) {
+                  setState(() => _telephone = numeroComplet);
+                },
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _cnibNumeroCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Numéro CNIB',
-                  prefixIcon: Icon(Icons.badge_outlined),
-                  hintText: 'ex: B1234567',
-                ),
-                inputFormatters: [UpperCaseTextFormatter()],
-                validator: (v) => v == null || v.isEmpty ? 'Numéro CNIB requis' : null,
-              ),
-              const SizedBox(height: 16),
+
+              // ── Mot de passe ──
               TextFormField(
                 controller: _passwordCtrl,
                 obscureText: !_showPassword,
@@ -370,18 +436,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 validator: (v) => v == null || v.length < 6 ? 'Minimum 6 caractères' : null,
               ),
               const SizedBox(height: 24),
-              const Text('Photo de la CNIB *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-              const SizedBox(height: 4),
-              const Text('Photo claire de votre carte nationale', style: TextStyle(color: HerressoTheme.textSecondary, fontSize: 12)),
-              const SizedBox(height: 8),
-              _photoPickerCard(photo: _cnibPhoto, icon: Icons.credit_card, label: 'Choisir la photo CNIB', onTap: () => _pickImage(true)),
+
+              // ── CNIB avec scan OCR ──
+              CnibFormWidget(
+                onChanged: (data) {
+                  setState(() => _cnibData = data);
+                },
+              ),
               const SizedBox(height: 16),
+
+              // ── Selfie ──
               const Text('Selfie du visage *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               const SizedBox(height: 4),
               const Text('Photo de votre visage pour vérification', style: TextStyle(color: HerressoTheme.textSecondary, fontSize: 12)),
               const SizedBox(height: 8),
-              _photoPickerCard(photo: _selfiePhoto, icon: Icons.face, label: 'Prendre un selfie', onTap: _takeSelfie, onTapGallery: () => _pickImage(false)),
+              _photoPickerCard(
+                photo: _selfiePhoto,
+                icon: Icons.face,
+                label: 'Prendre un selfie',
+                onTap: _takeSelfie,
+                onTapGallery: _pickSelfieGallery,
+              ),
               const SizedBox(height: 8),
+
+              // ── Info vérification ──
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -398,6 +476,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // ── Erreur ──
               Consumer<AuthProvider>(
                 builder: (ctx, auth, _) {
                   if (auth.error != null) {
@@ -417,8 +497,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return const SizedBox.shrink();
                 },
               ),
+
               Consumer<AuthProvider>(
-                builder: (ctx, auth, _) => PrimaryButton(label: "S'inscrire", onPressed: _register, isLoading: auth.isLoading, icon: Icons.person_add),
+                builder: (ctx, auth, _) => PrimaryButton(
+                  label: "S'inscrire",
+                  onPressed: _register,
+                  isLoading: auth.isLoading,
+                  icon: Icons.person_add,
+                ),
               ),
               const SizedBox(height: 16),
               Center(child: Row(
