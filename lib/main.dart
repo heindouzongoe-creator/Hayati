@@ -11,6 +11,7 @@ import 'screens/home_screen.dart';
 import 'screens/biens_screens.dart';
 import 'screens/profile_screen.dart';
 import 'services/notification_service.dart';
+// Removed unused import: 'screens/proprietaire_screens.dart'
 
 
 void main() async {
@@ -45,6 +46,9 @@ class HerressoApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => BienProvider()),
+        ChangeNotifierProvider<ProprietaireProvider>(
+          create: (_) => ProprietaireProvider(),
+        ),
       ],
       child: MaterialApp(
         title: 'Herresso',

@@ -84,6 +84,7 @@ class ApiService {
   // BIENS
   // ─────────────────────────────────────────
 
+
   static Future<Map<String, dynamic>> getBiens({
     String? ville,
     String? typeLocation,
@@ -102,12 +103,50 @@ class ApiService {
     final response = await http.get(uri, headers: _headers);
     return _handleResponse(response);
   }
-
-  static Future<Map<String, dynamic>> getBienDetail(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/biens/$id'), headers: _headers);
-    return _handleResponse(response);
-  }
-
+ static Future<Map<String, dynamic>> modifierBien({
+  required int id,
+  String? titre,
+  String? description,
+  String? ville,
+  String? secteur,
+  String? quartier,
+  double? prix,
+  String? typeLocation,
+  String? typeBien,
+  int? nombreChambres,
+  int? nombreSallesDeBain,
+  bool? climatisation,
+  bool? wifi,
+  bool? parking,
+  bool? eau,
+  bool? electricite,
+  String? statut,
+}) async {
+  final response = await http.put(
+    Uri.parse('$baseUrl/biens/$id'),
+    headers: {..._headers, 'Content-Type': 'application/json'},
+    body: jsonEncode({
+      if (titre != null) 'titre': titre,
+      if (description != null) 'description': description,
+      if (ville != null) 'ville': ville,
+      if (secteur != null) 'secteur': secteur,
+      if (quartier != null) 'quartier': quartier,
+      if (prix != null) 'prix': prix,
+      if (typeLocation != null) 'type_location': typeLocation,
+      if (typeBien != null) 'type_bien': typeBien,
+      if (nombreChambres != null) 'nombre_chambres': nombreChambres,
+      if (nombreSallesDeBain != null) 'nombre_salles_de_bain': nombreSallesDeBain,
+      if (climatisation != null) 'climatisation': climatisation,
+      if (wifi != null) 'wifi': wifi,
+      if (parking != null) 'parking': parking,
+      if (eau != null) 'eau': eau,
+      if (electricite != null) 'electricite': electricite,
+      if (statut != null) 'statut': statut,
+    }),
+  );
+  return _handleResponse(response);
+}
+/// publierBien envoie les données 
   static Future<Map<String, dynamic>> publierBien({
     required String titre,
     required String description,
@@ -124,28 +163,37 @@ class ApiService {
     bool? parking,
     bool? eau,
     bool? electricite,
+    List<File>? photos,
   }) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/biens'),
-      headers: {..._headers, 'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'titre': titre,
-        'description': description,
-        'ville': ville,
-        'secteur': secteur,
-        'quartier': quartier,
-        'prix': prix,
-        'type_location': typeLocation,
-        'type_bien': typeBien,
-        'nombre_chambres': nombreChambres,
-        'nombre_salles_de_bain': nombreSallesDeBain,
-        'climatisation': climatisation ?? false,
-        'wifi': wifi ?? false,
-        'parking': parking ?? false,
-        'eau': eau ?? true,
-        'electricite': electricite ?? true,
-      }),
-    );
+    final uri = Uri.parse('$baseUrl/biens');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.headers.addAll(_headers);
+
+    request.fields['titre'] = titre;
+    request.fields['description'] = description;
+    request.fields['ville'] = ville;
+    request.fields['secteur'] = secteur;
+    request.fields['quartier'] = quartier;
+    request.fields['prix'] = prix.toString();
+    request.fields['type_location'] = typeLocation;
+    request.fields['type_bien'] = typeBien;
+    request.fields['nombre_chambres'] = nombreChambres.toString();
+    request.fields['nombre_salles_de_bain'] = nombreSallesDeBain.toString();
+    request.fields['climatisation'] = (climatisation ?? false).toString();
+    request.fields['wifi'] = (wifi ?? false).toString();
+    request.fields['parking'] = (parking ?? false).toString();
+    request.fields['eau'] = (eau ?? true).toString();
+    request.fields['electricite'] = (electricite ?? true).toString();
+
+    if (photos != null) {
+      for (final photo in photos) {
+        request.files.add(await http.MultipartFile.fromPath('photos[]', photo.path));
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
     return _handleResponse(response);
   }
 
@@ -158,6 +206,8 @@ class ApiService {
     final response = await http.get(Uri.parse('$baseUrl/mes-biens'), headers: _headers);
     return _handleResponse(response);
   }
+
+  
 
   // ─────────────────────────────────────────
   // RÉSERVATIONS
@@ -277,6 +327,14 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<void> signalerBien({required int bienId, required String motif, required String detail}) async {
+    await http.post(Uri.parse("$baseUrl/biens/$bienId/signaler"), headers: {..._headers, "Content-Type": "application/json"}, body: jsonEncode({"motif": motif, "detail": detail}));
+  }
+
+  static Future<void> noterBailleur({required int proprietaireId, required int note, required String commentaire}) async {
+    await http.post(Uri.parse("$baseUrl/users/$proprietaireId/avis"), headers: {..._headers, "Content-Type": "application/json"}, body: jsonEncode({"note": note, "commentaire": commentaire}));
+  }
+
   static Future<Map<String, dynamic>> saveFcmToken(String token) async {
     final response = await http.post(
       Uri.parse('$baseUrl/notifications/token'),
@@ -313,8 +371,8 @@ class ApiService {
       throw ApiException(message: body['message'] ?? 'Erreur serveur.', statusCode: response.statusCode);
     }
   }
-}
 
+}
 class ApiException implements Exception {
   final String message;
   final int statusCode;

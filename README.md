@@ -6,7 +6,7 @@ Application Flutter de mise en relation entre locataires et propriétaires au Bu
 
 ---
 
-## 📁 Structure du projet
+## Structure du projet
 ```
 herresso/
 ├── lib/
@@ -28,7 +28,7 @@ herresso/
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 - Flutter SDK ≥ 3.0.0
@@ -60,7 +60,7 @@ flutter run
 - [x] Déconnexion
 - [x] Parcourir sans compte
 
-### 🏠 Biens immobiliers
+###  Biens immobiliers
 - [x] Liste des biens en grille ou liste
 - [x] Recherche par texte
 - [x] Filtres: ville, type de location, prix max
@@ -68,25 +68,25 @@ flutter run
 - [x] Détail complet (description, caractéristiques, avis)
 - [x] Système de notation (étoiles)
 
-### 📅 Réservations & Visites
+### Réservations & Visites
 - [x] Réservation court terme (avec dates et calcul prix)
 - [x] Choix du mode de paiement (Orange Money, Moov Money, Coris Money)
 - [x] Demande de visite avec calendrier
 
-### 📣 Publication
+###  Publication
 - [x] Formulaire de publication d'un bien (propriétaire)
 - [x] Ajout de photos (interface)
 
-### 🔔 Notifications
+###  Notifications
 - [x] Centre de notifications avec badges
 
-### 👤 Profil
+###  Profil
 - [x] Affichage infos utilisateur
 - [x] Menu (visites, réservations, contrats, paiements)
 
 ---
 
-## 🛠️ Dépendances principales
+##  Dépendances principales
 
 | Package | Utilisation |
 |---------|-------------|
@@ -102,7 +102,7 @@ flutter run
 
 ---
 
-## 🎨 Design
+## Design
 - **Couleur principale**: Vert #006B3F (inspiré du drapeau du Burkina Faso)
 - **Couleur secondaire**: Or/Jaune #FFC107
 - **Police**: Poppins (Google Fonts)
@@ -110,7 +110,7 @@ flutter run
 
 ---
 
-## 📱 Écrans
+##  Écrans
 
 | Écran | Description |
 |-------|-------------|
@@ -123,7 +123,7 @@ flutter run
 
 ---
 
-## 🔜 À développer (Phase 2)
+## À développer (Phase 2)
 - [ ] Intégration API REST (Node.js + PostgreSQL)
 - [ ] Vraie intégration CinetPay (mobile money)
 - [ ] Messagerie in-app propriétaire ↔ locataire
@@ -134,6 +134,6 @@ flutter run
 
 ---
 
-## 👨‍💻 Développé pour Herresso
+##  Développé pour Herresso
 Plateforme digitale de location immobilière pour le marché burkinabè.
 Cible initiale: Ouagadougou & Bobo-Dioulasso.

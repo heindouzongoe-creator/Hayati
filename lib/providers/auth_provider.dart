@@ -1,8 +1,7 @@
-// lib/providers/auth_provider.dart
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
-import 'dart:io';
 import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -18,54 +17,50 @@ class AuthProvider extends ChangeNotifier {
   bool get isProprietaire => _currentUser?.role == RoleUtilisateur.proprietaire;
 
   Future<bool> login(String identifiant, String motDePasse) async {
-  _isLoading = true;
-  _error = null;
-  notifyListeners();
-
-  try {
-    final result = await ApiService.login(
-      identifiant: identifiant,
-      password: motDePasse,
-    );
-    ApiService.setToken(result['data']['token']);
-    _currentUser = Utilisateur.fromJson(result['data']['user']);
-
-    // ── Sauvegarde locale ──
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', result['data']['token']);
-    await prefs.setString('dernier_identifiant', identifiant);
-
-    _isLoading = false;
+    _isLoading = true;
+    _error = null;
     notifyListeners();
-    return true;
-  } on ApiException catch (e) {
-    _error = e.message;
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  } catch (e) {
-    _error = 'Erreur de connexion au serveur';
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  }
-}
-Future<void> chargerSession() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
-  if (token != null) {
-    ApiService.setToken(token);
     try {
-      final result = await ApiService.getMe();
-      _currentUser = Utilisateur.fromJson(result['data']);
+      final result = await ApiService.login(
+        identifiant: identifiant,
+        password: motDePasse,
+      );
+      ApiService.setToken(result['data']['token']);
+      _currentUser = Utilisateur.fromJson(result['data']['user']);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', result['data']['token']);
+      await prefs.setString('dernier_identifiant', identifiant);
+      _isLoading = false;
       notifyListeners();
-    } catch (_) {
-      // Token expiré — on nettoie
-      await prefs.remove('token');
-      ApiService.clearToken();
+      return true;
+    } on ApiException catch (e) {
+      _error = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'Erreur de connexion au serveur';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
-}
+
+  Future<void> chargerSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token != null) {
+      ApiService.setToken(token);
+      try {
+        final result = await ApiService.getMe();
+        _currentUser = Utilisateur.fromJson(result['data']);
+        notifyListeners();
+      } catch (_) {
+        await prefs.remove('token');
+        ApiService.clearToken();
+      }
+    }
+  }
 
   Future<bool> register({
     required String nom,
@@ -73,10 +68,10 @@ Future<void> chargerSession() async {
     required String email,
     required String telephone,
     required String motDePasse,
-    required String cnibNumero,
-    required File cnibPhotoPath,
-    required File selfiePhotoPath,
     required RoleUtilisateur role,
+    String? cnibNumero,
+    required File cnibPhoto,
+    required File selfiePhoto,
   }) async {
     _isLoading = true;
     _error = null;
@@ -89,9 +84,9 @@ Future<void> chargerSession() async {
         telephone: telephone,
         password: motDePasse,
         role: role == RoleUtilisateur.proprietaire ? 'proprietaire' : 'locataire',
-      cnibNumero: cnibNumero,
-      cnibPhoto: cnibPhotoPath,
-      selfiePhoto: selfiePhotoPath,
+        cnibNumero: cnibNumero ?? '',
+        cnibPhoto: cnibPhoto,
+        selfiePhoto: selfiePhoto,
       );
       final data = res['data'];
       ApiService.setToken(data['token']);
@@ -123,13 +118,14 @@ Future<void> chargerSession() async {
     }
   }
 
-Future<void> reloadUser() async {
-  try {
-    final result = await ApiService.getMe();
-    _currentUser = Utilisateur.fromJson(result['data']);
-    notifyListeners();
-  } catch (_) {}
-}
+  Future<void> reloadUser() async {
+    try {
+      final result = await ApiService.getMe();
+      _currentUser = Utilisateur.fromJson(result['data']);
+      notifyListeners();
+    } catch (_) {}
+  }
+
   Future<void> logout() async {
     try {
       await ApiService.logout();

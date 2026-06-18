@@ -398,7 +398,7 @@ class AvisCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              avis.commentaire,
+              avis.commentaire ?? '',
               style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
           ],
