@@ -13,12 +13,11 @@ import 'screens/home_screen.dart';
 import 'screens/biens_screens.dart';
 import 'screens/profile_screen.dart';
 import 'services/notification_service.dart';
+import 'screens/publier_bien_screen.dart';
 
-// Removed unused import: 'screens/proprietaire_screens.dart'
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Charge la session sauvegardée
   final authProvider = AuthProvider();
   await authProvider.chargerSession();
 
@@ -36,6 +35,7 @@ void main() async {
 
   runApp(HerressoApp(authProvider: authProvider));
 }
+
 class HerressoApp extends StatelessWidget {
   final AuthProvider authProvider;
 
@@ -133,7 +133,7 @@ class _AppNavigatorState extends State<AppNavigator> {
 enum _AppPage { login, register, main, bienDetail }
 
 // ---- SCAFFOLD PRINCIPAL (Bottom Nav) ----
-class _MainScaffold extends StatelessWidget {
+class _MainScaffold extends StatefulWidget {
   final int navIndex;
   final ValueChanged<int> onNavChange;
   final Function(Bien) onBienTap;
@@ -147,24 +147,57 @@ class _MainScaffold extends StatelessWidget {
   });
 
   @override
+  State<_MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<_MainScaffold> {
+
+ void _ouvrirPublierBien() {
+  final proprietaireProvider = context.read<ProprietaireProvider>();
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => ChangeNotifierProvider.value(
+      value: proprietaireProvider,
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.95,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        builder: (sheetCtx, ctrl) => ChangeNotifierProvider.value(
+          value: proprietaireProvider,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: PublierBienScreen(
+              onPublished: () => Navigator.pop(ctx),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+  @override
   Widget build(BuildContext context) {
     final pages = [
       HomeScreen(
-        onBienTap: onBienTap,
-        onVoirTout: () => onNavChange(1),
+        onBienTap: widget.onBienTap,
+        onVoirTout: () => widget.onNavChange(1),
+        onPublier: _ouvrirPublierBien,
       ),
-      BienListScreen(onBienTap: onBienTap),
-      ProfileScreen(onLogout: onLogout, onBienTap: onBienTap),
+      BienListScreen(onBienTap: widget.onBienTap),
+      ProfileScreen(onLogout: widget.onLogout, onBienTap: widget.onBienTap),
     ];
 
     return Scaffold(
       body: IndexedStack(
-        index: navIndex,
+        index: widget.navIndex,
         children: pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: navIndex,
-        onTap: onNavChange,
+        currentIndex: widget.navIndex,
+        onTap: widget.onNavChange,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),

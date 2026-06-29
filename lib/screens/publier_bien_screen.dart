@@ -355,23 +355,7 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
         content: Text('Bien publié avec succès !'), backgroundColor: Colors.green,
       ));
     }
-    if (ok && (_typeBien == 'hotel' || _typeBien == 'auberge')) {
-
-      final bienId = provider.mesBiens.last.id;
-      for (final chambre in _chambresHotel) {
-        await ApiService.ajouterChambre(
-        bienId:          bienId,
-          type:            chambre.type,
-          nom:             chambre.nom,
-          prix:            chambre.prix,
-          capacite:        chambre.capacite,
-          petitDejeuner:   chambre.petitDejeuner,
-          dejeuner:        chambre.dejeuner,
-        diner:           chambre.diner,
-        nombreDisponible: chambre.nombreDisponible,
-        );
-      }
-    }
+    
   }
 
   @override

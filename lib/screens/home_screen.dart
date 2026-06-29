@@ -10,11 +10,13 @@ import '../widgets/widgets.dart';
 class HomeScreen extends StatefulWidget {
   final Function(Bien) onBienTap;
   final VoidCallback onVoirTout;
+  final VoidCallback onPublier;
 
   const HomeScreen({
     super.key,
     required this.onBienTap,
     required this.onVoirTout,
+    required this.onPublier,
   });
 
   @override
@@ -82,8 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Text(
                                   auth.isLoggedIn
-                                      ? 'Bonjour, ${auth.currentUser!.prenom} 👋'
-                                      : 'Bienvenue 👋',
+                                      ? 'Bonjour, ${auth.currentUser!.prenom} '
+                                      : 'Bienvenue ',
                                   style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
@@ -284,6 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Banner CTA
                   _buildCtaBanner(),
                   const SizedBox(height: 32),
+                  
                 ],
               ),
             ),
@@ -410,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: widget.onPublier,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppTheme.primary,
