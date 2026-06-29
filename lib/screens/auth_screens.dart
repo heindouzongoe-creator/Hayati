@@ -1,10 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:herresso/widgets/cnib_form_widget.dart';
+import '../widgets/cnib_form_widget.dart';
 import 'package:provider/provider.dart';
-import '../providers/providers.dart';
+import '../providers/auth_provider.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
-import 'package:herresso/models/models.dart';
+import '../models/models.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -148,6 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   RoleUtilisateur _role = RoleUtilisateur.locataire;
   bool _showPassword = false;
   File? _selfiePhoto;
+  Uint8List? _selfiePhotoBytes;
   CnibFormData? _cnibData;
 
   @override
@@ -160,15 +162,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _takeSelfie() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 80, preferredCameraDevice: CameraDevice.front);
-    if (picked != null) setState(() => _selfiePhoto = File(picked.path));
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        _selfiePhoto = File(picked.path);
+        _selfiePhotoBytes = bytes;
+        
+      });
+    }
   }
 
   Future<void> _pickSelfieGallery() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) setState(() => _selfiePhoto = File(picked.path));
+  final picker = ImagePicker();
+  final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+  if (picked != null) {
+    final bytes = await picked.readAsBytes();
+    setState(() {
+      _selfiePhoto = kIsWeb ? null : File(picked.path);
+      _selfiePhotoBytes = bytes;
+    });
   }
-
+}
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -186,7 +200,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // Propriétaire : selfie obligatoire, CNIB optionnelle
     if (_role == RoleUtilisateur.proprietaire) {
-      if (_selfiePhoto == null) {
+      
+      if (_selfiePhoto == null && _selfiePhotoBytes == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La photo de profil est obligatoire'), backgroundColor: Colors.red));
         return;
       }
@@ -206,8 +221,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       motDePasse: _passwordCtrl.text,
       role: _role,
       cnibNumero: _cnibData?.numero ?? '',
-      cnibPhoto: _cnibData?.photoCnib ?? _selfiePhoto ?? File(''),
-      selfiePhoto: _selfiePhoto ?? _cnibData?.photoCnib ?? File(''),
+      cnibPhoto: kIsWeb ? File('') : (_cnibData?.photoCnib ?? File('')),
+      selfiePhoto: kIsWeb ? File('') : (_selfiePhoto ?? File('')),
+      selfiePhotoBytes: _selfiePhotoBytes,
+      cnibPhotoBytes: _cnibData?.photoCnibBytes,
     );
     if (success && mounted) widget.onSuccess();
   }
@@ -294,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 4),
                 const Text('Cette photo sera visible sur votre profil', style: TextStyle(color: HerressoTheme.textSecondary, fontSize: 12)),
                 const SizedBox(height: 8),
-                _photoPickerCard(photo: _selfiePhoto, icon: Icons.face, label: 'Prendre un selfie', onTap: _takeSelfie, onTapGallery: _pickSelfieGallery),
+                _photoPickerCard(photoBytes: _selfiePhotoBytes, icon: Icons.face, label: 'Prendre un selfie', onTap: _takeSelfie, onTapGallery: _pickSelfieGallery),
                 const SizedBox(height: 16),
               ],
 
@@ -339,19 +356,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _photoPickerCard({required File? photo, required IconData icon, required String label, required VoidCallback onTap, VoidCallback? onTapGallery}) {
+  Widget _photoPickerCard({required Uint8List? photoBytes, required IconData icon, required String label, required VoidCallback onTap, VoidCallback? onTapGallery}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity, height: 140,
         decoration: BoxDecoration(
-          color: photo != null ? Colors.transparent : Colors.grey.shade50,
+          color: photoBytes != null ? Colors.transparent : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: photo != null ? HerressoTheme.primary : Colors.grey.shade300, width: photo != null ? 2 : 1),
+          border: Border.all(color: photoBytes != null ? HerressoTheme.primary : Colors.grey.shade300, width: photoBytes != null ? 2 : 1),
         ),
-        child: photo != null
+        child: photoBytes != null
             ? Stack(children: [
-                ClipRRect(borderRadius: BorderRadius.circular(11), child: Image.file(photo, width: double.infinity, height: 140, fit: BoxFit.cover)),
+                ClipRRect(borderRadius: BorderRadius.circular(11), child: Image.memory(photoBytes, width: double.infinity, height: 140, fit: BoxFit.cover)),
                 Positioned(top: 8, right: 8, child: GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.edit, size: 16, color: Colors.black87)))),
                 Positioned(bottom: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: HerressoTheme.primary, borderRadius: BorderRadius.circular(8)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.check, size: 14, color: Colors.white), SizedBox(width: 4), Text('Photo ajoutée', style: TextStyle(color: Colors.white, fontSize: 12))]))),
               ])

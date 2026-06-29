@@ -322,3 +322,55 @@ class Notification {
     );
   }
 }
+
+
+class Chambre {
+  final int? id;
+  final int bienId;
+  final String type;
+  final String nom;
+  final double prix;
+  final int capacite;
+  final bool petitDejeuner;
+  final bool dejeuner;
+  final bool diner;
+  final int nombreDisponible;
+
+  Chambre({
+    this.id,
+    required this.bienId,
+    required this.type,
+    required this.nom,
+    required this.prix,
+    this.capacite = 1,
+    this.petitDejeuner = false,
+    this.dejeuner = false,
+    this.diner = false,
+    this.nombreDisponible = 1,
+  });
+
+  factory Chambre.fromJson(Map<String, dynamic> json) => Chambre(
+    id:                json['id'],
+    bienId:            json['bien_id'],
+    type:              json['type'],
+    nom:               json['nom'],
+    prix:              double.parse(json['prix'].toString()),
+    capacite:          json['capacite'] ?? 1,
+    petitDejeuner:     json['petit_dejeuner'] == true || json['petit_dejeuner'] == 1,
+    dejeuner:          json['dejeuner'] == true || json['dejeuner'] == 1,
+    diner:             json['diner'] == true || json['diner'] == 1,
+    nombreDisponible:  json['nombre_disponible'] ?? 1,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'bien_id':           bienId,
+    'type':              type,
+    'nom':               nom,
+    'prix':              prix,
+    'capacite':          capacite,
+    'petit_dejeuner':    petitDejeuner,
+    'dejeuner':          dejeuner,
+    'diner':             diner,
+    'nombre_disponible': nombreDisponible,
+  };
+}

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/cnib_scanner_service.dart';
@@ -12,6 +13,7 @@ class CnibFormData {
   final String lieuNaissance;
   final String dateExpiration;
   final File? photoCnib;
+  final Uint8List? photoCnibBytes;
 
   CnibFormData({
     required this.numero,
@@ -21,12 +23,13 @@ class CnibFormData {
     required this.lieuNaissance,
     required this.dateExpiration,
     this.photoCnib,
+    this.photoCnibBytes,
   });
 }
 
 class CnibFormWidget extends StatefulWidget {
   final ValueChanged<CnibFormData> onChanged;
-  final bool verrouille; // true = champs non modifiables après scan
+  final bool verrouille;
 
   const CnibFormWidget({super.key, required this.onChanged, this.verrouille = false});
 
@@ -42,6 +45,7 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
   final _lieuNaissCtrl = TextEditingController();
   final _dateExpirCtrl = TextEditingController();
   File? _photoCnib;
+  Uint8List? _photoCnibBytes;
   bool _scanning = false;
   bool _scanFait = false;
 
@@ -61,6 +65,7 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
       lieuNaissance: _lieuNaissCtrl.text,
       dateExpiration: _dateExpirCtrl.text,
       photoCnib: _photoCnib,
+      photoCnibBytes: _photoCnibBytes,
     ));
   }
 
@@ -68,33 +73,48 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: source, imageQuality: 90);
     if (picked == null) return;
-    final photo = File(picked.path);
-    setState(() { _photoCnib = photo; _scanning = true; _scanFait = false; });
+
+    final bytes = await picked.readAsBytes();
+    final photo = kIsWeb ? null : File(picked.path);
+
+    setState(() {
+      _photoCnib = photo;
+      _photoCnibBytes = bytes;
+      _scanning = true;
+      _scanFait = false;
+    });
+
     try {
-      final info = await CnibScannerService.scanner(photo);
-      setState(() {
-        if (info.numero != null) _numeroCtrl.text = info.numero!;
-        if (info.nom != null) _nomCtrl.text = info.nom!;
-        if (info.prenom != null) _prenomCtrl.text = info.prenom!;
-        if (info.dateNaissance != null) _dateNaissCtrl.text = info.dateNaissance!;
-        if (info.lieuNaissance != null) _lieuNaissCtrl.text = info.lieuNaissance!;
-        if (info.dateExpiration != null) _dateExpirCtrl.text = info.dateExpiration!;
-        _scanning = false;
-        _scanFait = true;
-      });
-      _notifier();
-      if (info.estVide && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Scan incomplet — vérifiez la photo et complétez manuellement'),
-          backgroundColor: Colors.orange,
-        ));
+      if (photo != null) {
+        final info = await CnibScannerService.scanner(photo);
+        setState(() {
+          if (info.numero != null) _numeroCtrl.text = info.numero!;
+          if (info.nom != null) _nomCtrl.text = info.nom!;
+          if (info.prenom != null) _prenomCtrl.text = info.prenom!;
+          if (info.dateNaissance != null) _dateNaissCtrl.text = info.dateNaissance!;
+          if (info.lieuNaissance != null) _lieuNaissCtrl.text = info.lieuNaissance!;
+          if (info.dateExpiration != null) _dateExpirCtrl.text = info.dateExpiration!;
+          _scanning = false;
+          _scanFait = true;
+        });
+        _notifier();
+        if (info.estVide && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Scan incomplet — vérifiez la photo et complétez manuellement'),
+            backgroundColor: Colors.orange,
+          ));
+        }
+      } else {
+        setState(() { _scanning = false; _scanFait = false; });
+        _notifier();
       }
     } catch (e) {
-      setState(() { _scanning = false; });
+      setState(() { _scanning = false; _scanFait = false; });
+      _notifier();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Erreur lors du scan — remplissez manuellement'),
-          backgroundColor: Colors.red,
+          content: Text('Scan non disponible — remplissez manuellement'),
+          backgroundColor: Colors.orange,
         ));
       }
     }
@@ -114,20 +134,24 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
           style: TextStyle(color: HerressoTheme.textSecondary, fontSize: 12),
         ),
         const SizedBox(height: 12),
-
-        // ── Zone photo ──
         GestureDetector(
           onTap: _champsVerrouilles ? null : _afficherChoixSource,
           child: Container(
             width: double.infinity, height: 160,
             decoration: BoxDecoration(
-              color: _photoCnib != null ? Colors.transparent : Colors.grey.shade50,
+              color: _photoCnibBytes != null ? Colors.transparent : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _photoCnib != null ? HerressoTheme.primary : Colors.grey.shade300, width: _photoCnib != null ? 2 : 1),
+              border: Border.all(
+                color: _photoCnibBytes != null ? HerressoTheme.primary : Colors.grey.shade300,
+                width: _photoCnibBytes != null ? 2 : 1,
+              ),
             ),
-            child: _photoCnib != null
+            child: _photoCnibBytes != null
                 ? Stack(children: [
-                    ClipRRect(borderRadius: BorderRadius.circular(11), child: Image.file(_photoCnib!, width: double.infinity, height: 160, fit: BoxFit.cover)),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: Image.memory(_photoCnibBytes!, width: double.infinity, height: 160, fit: BoxFit.cover),
+                    ),
                     if (_scanning)
                       Container(
                         decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(11)),
@@ -140,17 +164,25 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
                     if (_scanFait && !_scanning)
                       Positioned(bottom: 8, right: 8, child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(color: _champsVerrouilles ? Colors.blue : Colors.green, borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(
+                          color: _champsVerrouilles ? Colors.blue : Colors.green,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Icon(_champsVerrouilles ? Icons.lock : Icons.check, size: 14, color: Colors.white),
                           const SizedBox(width: 4),
-                          Text(_champsVerrouilles ? 'Pièce vérifiée' : 'Scan réussi', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                          Text(_champsVerrouilles ? 'Pièce vérifiée' : 'Scan réussi',
+                              style: const TextStyle(color: Colors.white, fontSize: 12)),
                         ]),
                       )),
                     if (!_champsVerrouilles)
                       Positioned(top: 8, right: 8, child: GestureDetector(
                         onTap: _afficherChoixSource,
-                        child: Container(padding: const EdgeInsets.all(6), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.edit, size: 16, color: Colors.black87)),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                          child: const Icon(Icons.edit, size: 16, color: Colors.black87),
+                        ),
                       )),
                   ])
                 : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -163,8 +195,6 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
           ),
         ),
         const SizedBox(height: 16),
-
-        // ── Champs ──
         _champCnib(ctrl: _numeroCtrl, label: 'Numéro CNIB', icone: Icons.badge_outlined, hint: 'ex: B1234567', majuscule: true),
         const SizedBox(height: 12),
         Row(children: [
@@ -176,21 +206,24 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
         Row(children: [
           Expanded(child: _champCnib(ctrl: _dateNaissCtrl, label: 'Date de naissance', icone: Icons.cake_outlined, hint: 'jj/mm/aaaa')),
           const SizedBox(width: 12),
-          Expanded(child: _champCnib(ctrl: _dateExpirCtrl, label: 'Date d\'expiration', icone: Icons.event_outlined, hint: 'jj/mm/aaaa')),
+          Expanded(child: _champCnib(ctrl: _dateExpirCtrl, label: "Date d'expiration", icone: Icons.event_outlined, hint: 'jj/mm/aaaa')),
         ]),
         const SizedBox(height: 12),
         _champCnib(ctrl: _lieuNaissCtrl, label: 'Lieu de naissance', icone: Icons.location_on_outlined, hint: 'ex: Ouagadougou'),
-
-        // ── Info verrouillage ──
         if (_champsVerrouilles) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue.shade200)),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
             child: const Row(children: [
               Icon(Icons.lock_outline, size: 16, color: Colors.blue),
               SizedBox(width: 8),
-              Expanded(child: Text('Infos verrouillées — votre identité a été vérifiée via la CNIB', style: TextStyle(fontSize: 12, color: Colors.blue))),
+              Expanded(child: Text('Infos verrouillées — votre identité a été vérifiée via la CNIB',
+                  style: TextStyle(fontSize: 12, color: Colors.blue))),
             ]),
           ),
         ],
@@ -209,7 +242,9 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
         hintText: hint,
         prefixIcon: Icon(icone, size: 20),
         filled: _scanFait,
-        fillColor: _champsVerrouilles ? Colors.blue.shade50 : (_scanFait && ctrl.text.isNotEmpty ? Colors.green.shade50 : null),
+        fillColor: _champsVerrouilles
+            ? Colors.blue.shade50
+            : (_scanFait && ctrl.text.isNotEmpty ? Colors.green.shade50 : null),
         suffixIcon: _champsVerrouilles ? const Icon(Icons.lock, size: 16, color: Colors.blue) : null,
       ),
       validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
@@ -230,13 +265,21 @@ class _CnibFormWidgetState extends State<CnibFormWidget> {
           const SizedBox(height: 20),
           ListTile(
             onTap: () { Navigator.pop(ctx); _prendrePhoto(ImageSource.camera); },
-            leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: HerressoTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle), child: Icon(Icons.camera_alt, color: HerressoTheme.primary)),
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: HerressoTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(Icons.camera_alt, color: HerressoTheme.primary),
+            ),
             title: const Text('Prendre une photo', style: TextStyle(fontWeight: FontWeight.w500)),
             subtitle: const Text('Meilleure qualité pour le scan'),
           ),
           ListTile(
             onTap: () { Navigator.pop(ctx); _prendrePhoto(ImageSource.gallery); },
-            leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle), child: Icon(Icons.photo_library, color: Colors.blue.shade600)),
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
+              child: Icon(Icons.photo_library, color: Colors.blue.shade600),
+            ),
             title: const Text('Choisir depuis la galerie', style: TextStyle(fontWeight: FontWeight.w500)),
             subtitle: const Text('Photo existante'),
           ),

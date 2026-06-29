@@ -1,9 +1,15 @@
 import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+static const String _baseUrlMobile = 'http://10.0.2.2:8000/api';
+static const String _baseUrlWeb = 'http://localhost:8000/api';
+
+// URL automatique selon la plateforme
+static String get baseUrl => kIsWeb ? _baseUrlWeb : _baseUrlMobile;
   static String? _token;
 
   static Map<String, String> get _headers => {
@@ -13,11 +19,30 @@ class ApiService {
 
   static void setToken(String token) => _token = token;
   static void clearToken() => _token = null;
+  
+  static Future<void> _ajouterFichier(
+    http.MultipartRequest request,
+    String champ,
+    File fichier, {
+    Uint8List? bytes,
+    String filename = 'photo.jpg',
+  }) async {
+    if (kIsWeb) {
+      if (bytes == null) {
+        throw ApiException(
+            message: 'Photo manquante (bytes requis sur le web)', statusCode: 0);
+      }
+      request.files
+          .add(http.MultipartFile.fromBytes(champ, bytes, filename: filename));
+    } else {
+      request.files
+          .add(await http.MultipartFile.fromPath(champ, fichier.path));
+    }
+  }
 
-  // ─────────────────────────────────────────
+  
   // AUTHENTIFICATION
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> login({
     required String identifiant,
     required String password,
@@ -30,7 +55,6 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  /// register envoie les photos en multipart/form-data
   static Future<Map<String, dynamic>> register({
     required String nom,
     required String prenom,
@@ -39,27 +63,43 @@ class ApiService {
     required String password,
     required String role,
     required String cnibNumero,
-    required File cnibPhoto,
-    required File selfiePhoto,
+    File? cnibPhoto,
+    File? selfiePhoto,
+    Uint8List? cnibPhotoBytes,
+    Uint8List? selfiePhotoBytes,
   }) async {
     final uri = Uri.parse('$baseUrl/register');
     final request = http.MultipartRequest('POST', uri);
-
-    // Headers
     request.headers.addAll(_headers);
-
-    // Champs texte
     request.fields['nom'] = nom;
     request.fields['prenom'] = prenom;
-    if (email != null) request.fields['email'] = email;
-    if (telephone != null) request.fields['telephone'] = telephone;
+    if (email != null && email.isNotEmpty) request.fields['email'] = email;
+    if (telephone != null && telephone.isNotEmpty) request.fields['telephone'] = telephone;
     request.fields['password'] = password;
     request.fields['role'] = role;
-    request.fields['cnib_numero'] = cnibNumero;
+    if (cnibNumero.isNotEmpty) request.fields['cnib_numero'] = cnibNumero;
 
-    // Photos
-    request.files.add(await http.MultipartFile.fromPath('cnib_photo', cnibPhoto.path));
-    request.files.add(await http.MultipartFile.fromPath('selfie_photo', selfiePhoto.path));
+    // selfie_photo 
+    if (selfiePhotoBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'selfie_photo', selfiePhotoBytes, filename: 'selfie.jpg',
+      ));
+    } else if (selfiePhoto != null && selfiePhoto.path.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'selfie_photo', selfiePhoto.path,
+      ));
+    }
+
+    // cnib_photo : optionnelle
+    if (cnibPhotoBytes != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'cnib_photo', cnibPhotoBytes, filename: 'cnib.jpg',
+      ));
+    } else if (cnibPhoto != null && cnibPhoto.path.isNotEmpty) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'cnib_photo', cnibPhoto.path,
+      ));
+    }
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
@@ -76,15 +116,14 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getMe() async {
-    final response = await http.get(Uri.parse('$baseUrl/me'), headers: _headers);
+    final response =
+        await http.get(Uri.parse('$baseUrl/me'), headers: _headers);
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // BIENS
-  // ─────────────────────────────────────────
-
-
+  
   static Future<Map<String, dynamic>> getBiens({
     String? ville,
     String? typeLocation,
@@ -99,54 +138,57 @@ class ApiService {
       if (prixMax != null) 'prix_max': prixMax.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
     };
-    final uri = Uri.parse('$baseUrl/biens').replace(queryParameters: params);
+    final uri =
+        Uri.parse('$baseUrl/biens').replace(queryParameters: params);
     final response = await http.get(uri, headers: _headers);
     return _handleResponse(response);
   }
- static Future<Map<String, dynamic>> modifierBien({
-  required int id,
-  String? titre,
-  String? description,
-  String? ville,
-  String? secteur,
-  String? quartier,
-  double? prix,
-  String? typeLocation,
-  String? typeBien,
-  int? nombreChambres,
-  int? nombreSallesDeBain,
-  bool? climatisation,
-  bool? wifi,
-  bool? parking,
-  bool? eau,
-  bool? electricite,
-  String? statut,
-}) async {
-  final response = await http.put(
-    Uri.parse('$baseUrl/biens/$id'),
-    headers: {..._headers, 'Content-Type': 'application/json'},
-    body: jsonEncode({
-      if (titre != null) 'titre': titre,
-      if (description != null) 'description': description,
-      if (ville != null) 'ville': ville,
-      if (secteur != null) 'secteur': secteur,
-      if (quartier != null) 'quartier': quartier,
-      if (prix != null) 'prix': prix,
-      if (typeLocation != null) 'type_location': typeLocation,
-      if (typeBien != null) 'type_bien': typeBien,
-      if (nombreChambres != null) 'nombre_chambres': nombreChambres,
-      if (nombreSallesDeBain != null) 'nombre_salles_de_bain': nombreSallesDeBain,
-      if (climatisation != null) 'climatisation': climatisation,
-      if (wifi != null) 'wifi': wifi,
-      if (parking != null) 'parking': parking,
-      if (eau != null) 'eau': eau,
-      if (electricite != null) 'electricite': electricite,
-      if (statut != null) 'statut': statut,
-    }),
-  );
-  return _handleResponse(response);
-}
-/// publierBien envoie les données 
+
+  static Future<Map<String, dynamic>> modifierBien({
+    required int id,
+    String? titre,
+    String? description,
+    String? ville,
+    String? secteur,
+    String? quartier,
+    double? prix,
+    String? typeLocation,
+    String? typeBien,
+    int? nombreChambres,
+    int? nombreSallesDeBain,
+    bool? climatisation,
+    bool? wifi,
+    bool? parking,
+    bool? eau,
+    bool? electricite,
+    String? statut, 
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/biens/$id'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({
+        if (titre != null) 'titre': titre,
+        if (description != null) 'description': description,
+        if (ville != null) 'ville': ville,
+        if (secteur != null) 'secteur': secteur,
+        if (quartier != null) 'quartier': quartier,
+        if (prix != null) 'prix': prix,
+        if (typeLocation != null) 'type_location': typeLocation,
+        if (typeBien != null) 'type_bien': typeBien,
+        if (nombreChambres != null) 'nombre_chambres': nombreChambres,
+        if (nombreSallesDeBain != null)
+          'nombre_salles_de_bain': nombreSallesDeBain,
+        if (climatisation != null) 'climatisation': climatisation,
+        if (wifi != null) 'wifi': wifi,
+        if (parking != null) 'parking': parking,
+        if (eau != null) 'eau': eau,
+        if (electricite != null) 'electricite': electricite,
+        if (statut != null) 'statut': statut, // ← ajouté
+      }),
+    );
+    return _handleResponse(response);
+  }
+
   static Future<Map<String, dynamic>> publierBien({
     required String titre,
     required String description,
@@ -164,12 +206,11 @@ class ApiService {
     bool? eau,
     bool? electricite,
     List<File>? photos,
+    List<Uint8List>? photosBytes,
   }) async {
     final uri = Uri.parse('$baseUrl/biens');
     final request = http.MultipartRequest('POST', uri);
-
     request.headers.addAll(_headers);
-
     request.fields['titre'] = titre;
     request.fields['description'] = description;
     request.fields['ville'] = ville;
@@ -187,8 +228,11 @@ class ApiService {
     request.fields['electricite'] = (electricite ?? true).toString();
 
     if (photos != null) {
-      for (final photo in photos) {
-        request.files.add(await http.MultipartFile.fromPath('photos[]', photo.path));
+      for (var i = 0; i < photos.length; i++) {
+        final bytes =
+            (photosBytes != null && i < photosBytes.length) ? photosBytes[i] : null;
+        await _ajouterFichier(request, 'photos[]', photos[i],
+            bytes: bytes, filename: 'photo_$i.jpg');
       }
     }
 
@@ -198,21 +242,97 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> supprimerBien(int id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/biens/$id'), headers: _headers);
+    final response = await http.delete(
+        Uri.parse('$baseUrl/biens/$id'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
   static Future<Map<String, dynamic>> getMesBiens() async {
-    final response = await http.get(Uri.parse('$baseUrl/mes-biens'), headers: _headers);
+    final response = await http.get(
+        Uri.parse('$baseUrl/mes-biens'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
+
+  // CHAMBRES
+
+static Future<Map<String, dynamic>> getChambres(int bienId) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/biens/$bienId/chambres'),
+    headers: _headers,
+  );
+  return _handleResponse(response);
+}
+
+static Future<Map<String, dynamic>> ajouterChambre({
+  required int bienId,
+  required String type,
+  required String nom,
+  required double prix,
+  int capacite = 1,
+  bool petitDejeuner = false,
+  bool dejeuner = false,
+  bool diner = false,
+  int nombreDisponible = 1,
+}) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/biens/$bienId/chambres'),
+    headers: {..._headers, 'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'type': type,
+      'nom': nom,
+      'prix': prix,
+      'capacite': capacite,
+      'petit_dejeuner': petitDejeuner,
+      'dejeuner': dejeuner,
+      'diner': diner,
+      'nombre_disponible': nombreDisponible,
+    }),
+  );
+  return _handleResponse(response);
+}
+
+static Future<Map<String, dynamic>> modifierChambre({
+  required int id,
+  String? type,
+  String? nom,
+  double? prix,
+  int? capacite,
+  bool? petitDejeuner,
+  bool? dejeuner,
+  bool? diner,
+  int? nombreDisponible,
+}) async {
+  final response = await http.put(
+    Uri.parse('$baseUrl/chambres/$id'),
+    headers: {..._headers, 'Content-Type': 'application/json'},
+    body: jsonEncode({
+      if (type != null) 'type': type,
+      if (nom != null) 'nom': nom,
+      if (prix != null) 'prix': prix,
+      if (capacite != null) 'capacite': capacite,
+      if (petitDejeuner != null) 'petit_dejeuner': petitDejeuner,
+      if (dejeuner != null) 'dejeuner': dejeuner,
+      if (diner != null) 'diner': diner,
+      if (nombreDisponible != null) 'nombre_disponible': nombreDisponible,
+    }),
+  );
+  return _handleResponse(response);
+}
+
+static Future<Map<String, dynamic>> supprimerChambre(int id) async {
+  final response = await http.delete(
+    Uri.parse('$baseUrl/chambres/$id'),
+    headers: _headers,
+  );
+  return _handleResponse(response);
+}
+
   
-
-  // ─────────────────────────────────────────
   // RÉSERVATIONS
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> creerReservation({
     required int bienId,
     required String dateDebut,
@@ -233,19 +353,22 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getMesReservations() async {
-    final response = await http.get(Uri.parse('$baseUrl/mes-reservations'), headers: _headers);
+    final response = await http.get(
+        Uri.parse('$baseUrl/mes-reservations'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
   static Future<Map<String, dynamic>> annulerReservation(int id) async {
-    final response = await http.patch(Uri.parse('$baseUrl/reservations/$id/annuler'), headers: _headers);
+    final response = await http.patch(
+        Uri.parse('$baseUrl/reservations/$id/annuler'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // VISITES
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> demanderVisite({
     required int bienId,
     required String dateVisite,
@@ -266,33 +389,39 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getMesVisites() async {
-    final response = await http.get(Uri.parse('$baseUrl/mes-visites'), headers: _headers);
+    final response = await http.get(
+        Uri.parse('$baseUrl/mes-visites'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // NOTIFICATIONS
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> getNotifications() async {
-    final response = await http.get(Uri.parse('$baseUrl/notifications'), headers: _headers);
+    final response = await http.get(
+        Uri.parse('$baseUrl/notifications'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
   static Future<Map<String, dynamic>> marquerNotificationLue(int id) async {
-    final response = await http.patch(Uri.parse('$baseUrl/notifications/$id/lire'), headers: _headers);
+    final response = await http.patch(
+        Uri.parse('$baseUrl/notifications/$id/lire'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
   static Future<Map<String, dynamic>> marquerToutesLues() async {
-    final response = await http.patch(Uri.parse('$baseUrl/notifications/lire-tout'), headers: _headers);
+    final response = await http.patch(
+        Uri.parse('$baseUrl/notifications/lire-tout'),
+        headers: _headers);
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // AVIS
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> laisserAvis({
     required int bienId,
     required double note,
@@ -306,10 +435,9 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // PROFIL
-  // ─────────────────────────────────────────
-
+  
   static Future<Map<String, dynamic>> updateProfil({
     String? nom,
     String? prenom,
@@ -327,12 +455,28 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  static Future<void> signalerBien({required int bienId, required String motif, required String detail}) async {
-    await http.post(Uri.parse("$baseUrl/biens/$bienId/signaler"), headers: {..._headers, "Content-Type": "application/json"}, body: jsonEncode({"motif": motif, "detail": detail}));
+  static Future<void> signalerBien({
+    required int bienId,
+    required String motif,
+    required String detail,
+  }) async {
+    await http.post(
+      Uri.parse('$baseUrl/biens/$bienId/signaler'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'motif': motif, 'detail': detail}),
+    );
   }
 
-  static Future<void> noterBailleur({required int proprietaireId, required int note, required String commentaire}) async {
-    await http.post(Uri.parse("$baseUrl/users/$proprietaireId/avis"), headers: {..._headers, "Content-Type": "application/json"}, body: jsonEncode({"note": note, "commentaire": commentaire}));
+  static Future<void> noterBailleur({
+    required int proprietaireId,
+    required int note,
+    required String commentaire,
+  }) async {
+    await http.post(
+      Uri.parse('$baseUrl/users/$proprietaireId/avis'),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode({'note': note, 'commentaire': commentaire}),
+    );
   }
 
   static Future<Map<String, dynamic>> saveFcmToken(String token) async {
@@ -344,9 +488,8 @@ class ApiService {
     return _handleResponse(response);
   }
 
-  // ─────────────────────────────────────────
+  
   // GESTION DES RÉPONSES
-  // ─────────────────────────────────────────
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     final body = jsonDecode(response.body);
@@ -354,31 +497,39 @@ class ApiService {
       return {'success': true, 'data': body};
     } else if (response.statusCode == 401) {
       clearToken();
-      throw ApiException(message: 'Session expirée. Veuillez vous reconnecter.', statusCode: 401);
+      throw ApiException(
+          message: 'Session expirée. Veuillez vous reconnecter.',
+          statusCode: 401);
     } else if (response.statusCode == 422) {
       final errors = body['errors'] as Map<String, dynamic>?;
       final firstError = errors?.values.first;
       throw ApiException(
-        message: firstError is List ? firstError.first : body['message'] ?? 'Données invalides',
+        message: firstError is List
+            ? firstError.first
+            : body['message'] ?? 'Données invalides',
         statusCode: 422,
         errors: errors,
       );
     } else if (response.statusCode == 403) {
       throw ApiException(message: 'Accès non autorisé.', statusCode: 403);
     } else if (response.statusCode == 404) {
-      throw ApiException(message: 'Ressource introuvable.', statusCode: 404);
+      throw ApiException(
+          message: 'Ressource introuvable.', statusCode: 404);
     } else {
-      throw ApiException(message: body['message'] ?? 'Erreur serveur.', statusCode: response.statusCode);
+      throw ApiException(
+          message: body['message'] ?? 'Erreur serveur.',
+          statusCode: response.statusCode);
     }
   }
-
 }
+
 class ApiException implements Exception {
   final String message;
   final int statusCode;
   final Map<String, dynamic>? errors;
 
-  ApiException({required this.message, required this.statusCode, this.errors});
+  ApiException(
+      {required this.message, required this.statusCode, this.errors});
 
   @override
   String toString() => 'ApiException($statusCode): $message';

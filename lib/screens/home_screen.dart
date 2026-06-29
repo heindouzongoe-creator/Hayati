@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
-import '../providers/providers.dart';
+import '../providers/auth_provider.dart';
+import '../providers/bien_provider.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
 

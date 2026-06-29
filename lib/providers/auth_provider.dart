@@ -45,22 +45,24 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
+  
 
-  Future<void> chargerSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    if (token != null) {
-      ApiService.setToken(token);
-      try {
-        final result = await ApiService.getMe();
-        _currentUser = Utilisateur.fromJson(result['data']);
-        notifyListeners();
-      } catch (_) {
-        await prefs.remove('token');
-        ApiService.clearToken();
-      }
+ Future<void> chargerSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+  print('TOKEN EN MEMOIRE: $token'); // ← ajouter cette ligne
+  if (token != null) {
+    ApiService.setToken(token);
+    try {
+      final result = await ApiService.getMe();
+      _currentUser = Utilisateur.fromJson(result['data']);
+      notifyListeners();
+    } catch (_) {
+      await prefs.remove('token');
+      ApiService.clearToken();
     }
   }
+}
 
   Future<bool> register({
     required String nom,
@@ -72,6 +74,8 @@ class AuthProvider extends ChangeNotifier {
     String? cnibNumero,
     required File cnibPhoto,
     required File selfiePhoto,
+    Uint8List? selfiePhotoBytes,
+    Uint8List? cnibPhotoBytes,
   }) async {
     _isLoading = true;
     _error = null;
@@ -87,6 +91,8 @@ class AuthProvider extends ChangeNotifier {
         cnibNumero: cnibNumero ?? '',
         cnibPhoto: cnibPhoto,
         selfiePhoto: selfiePhoto,
+        selfiePhotoBytes: selfiePhotoBytes, 
+       cnibPhotoBytes: cnibPhotoBytes,
       );
       final data = res['data'];
       ApiService.setToken(data['token']);

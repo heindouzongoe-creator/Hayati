@@ -1,160 +1,183 @@
-// lib/providers/auth_provider.dart
+// lib/providers/proprietaire_provider.dart
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/models.dart';
-export 'proprietaire_provider.dart';
 
+class ProprietaireProvider extends ChangeNotifier {
+  static const String _baseUrl = 'http://VOTRE_IP:8000/api'; // ← changez ici
 
-class AuthProvider extends ChangeNotifier {
-  Utilisateur? _currentUser;
   bool _isLoading = false;
-  String? _error;
+  String? _erreur;
+  List<Bien> _mesBiens = [];
 
-  Utilisateur? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get isLoggedIn => _currentUser != null;
-  bool get isLocataire => _currentUser?.role == RoleUtilisateur.locataire;
-  bool get isProprietaire => _currentUser?.role == RoleUtilisateur.proprietaire;
+  String? get erreur => _erreur;
+  List<Bien> get mesBiens => _mesBiens;
 
-  Future<bool> login(String email, String motDePasse) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  String? _token; // token Sanctum
 
-    // Simulation appel API
-    await Future.delayed(const Duration(seconds: 1));
-
-   // backend 
-    _error = 'Email ou mot de passe incorrect';
-    _isLoading = false;
-    notifyListeners();
-    return false;
+  void setToken(String? token) {
+    _token = token;
   }
 
-  Future<bool> register({
-    required String nom,
-    required String prenom,
-    required String email,
-    required String telephone,
-    required String motDePasse,
-    required RoleUtilisateur role,
-    required String cnibNumero,
-    required File cnibPhoto,
-    required File selfiePhoto,
+  // ─────────────────────────────────────────
+  // PUBLIER UN BIEN
+  // ─────────────────────────────────────────
+  Future<bool> publierBien({
+    required String titre,
+    required String description,
+    required String ville,
+    required String secteur,
+    String? quartier,
+    required double prix,
+    required String typeLocation,       // 'sejour' ou 'long_terme'
+    required String typeBien,           // 'logement' ou 'local_commercial'
+    required int nombreChambres,
+    required int nombreSallesDeBain,
+    required bool climatisation,
+    required bool wifi,
+    required bool parking,
+    required bool eau,
+    required bool electricite,
+    List<File>? photos,
+    List<Uint8List>? photosBytes,       // pour le web
   }) async {
     _isLoading = true;
-    _error = null;
+    _erreur = null;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Multipart request pour envoyer les photos
+      final uri = Uri.parse('$_baseUrl/biens');
+      final request = http.MultipartRequest('POST', uri);
 
-    _currentUser = Utilisateur(
-      id: DateTime.now().millisecondsSinceEpoch,
-      nom: nom,
-      prenom: prenom,
-      email: email,
-      telephone: telephone,
-      role: role,
-      dateCreation: DateTime.now(),
-    );
+      // Headers
+      request.headers.addAll({
+        'Authorization': 'Bearer $_token',
+        'Accept': 'application/json',
+      });
 
-    _isLoading = false;
-    notifyListeners();
-    return true;
+      // Champs texte
+      request.fields['titre']                  = titre;
+      request.fields['description']            = description;
+      request.fields['ville']                  = ville;
+      request.fields['secteur']                = secteur;
+      request.fields['prix']                   = prix.toString();
+      request.fields['type_location']          = typeLocation;
+      request.fields['type_bien']              = typeBien;
+      request.fields['nombre_chambres']        = nombreChambres.toString();
+      request.fields['nombre_salles_de_bain']  = nombreSallesDeBain.toString();
+      request.fields['climatisation']          = climatisation ? '1' : '0';
+      request.fields['wifi']                   = wifi ? '1' : '0';
+      request.fields['parking']               = parking ? '1' : '0';
+      request.fields['eau']                    = eau ? '1' : '0';
+      request.fields['electricite']            = electricite ? '1' : '0';
+      if (quartier != null) request.fields['quartier'] = quartier;
+
+      // Photos (mobile)
+      if (!kIsWeb && photos != null) {
+        for (int i = 0; i < photos.length; i++) {
+          final file = photos[i];
+          request.files.add(await http.MultipartFile.fromPath(
+            'photos[]',
+            file.path,
+          ));
+        }
+      }
+
+      // Photos (web)
+      if (kIsWeb && photosBytes != null) {
+        for (int i = 0; i < photosBytes.length; i++) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'photos[]',
+            photosBytes[i],
+            filename: 'photo_$i.jpg',
+          ));
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        // Recharger la liste des biens
+        await chargerMesBiens();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        // Gérer les erreurs de validation Laravel
+        if (data['errors'] != null) {
+          final errors = data['errors'] as Map<String, dynamic>;
+          _erreur = errors.values.first[0];
+        } else {
+          _erreur = data['message'] ?? 'Erreur lors de la publication';
+        }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _erreur = 'Erreur réseau : ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
-  void logout() {
-    _currentUser = null;
-    notifyListeners();
-  }
-
-  Future<void> chargerSession() async {}
-
-  Future<void> reloadUser() async {}
-}
-
-// bien_provider.dart
-class BienProvider extends ChangeNotifier {
-  List<Bien> _biens = [];
-  List<Bien> _biensFiltres = [];
-  Bien? _bienSelectionne;
-  bool _isLoading = false;
-  String _searchQuery = '';
-  String _villeFiltre = 'Tous';
-  TypeLocation? _typeLocationFiltre;
-  double? _prixMax;
-
-  List<Bien> get biens => _biensFiltres;
-  List<Bien> get tousLesBiens => _biens;
-  Bien? get bienSelectionne => _bienSelectionne;
-  bool get isLoading => _isLoading;
-
-  Future<void> chargerBiens() async {
+  // ─────────────────────────────────────────
+  // MES BIENS
+  // ─────────────────────────────────────────
+  Future<void> chargerMesBiens() async {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 800));
-    _biens =[];
-    _appliquerFiltres();
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/mes-biens'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List data = jsonDecode(response.body);
+        _mesBiens = data.map((j) => Bien.fromJson(j)).toList();
+      }
+    } catch (e) {
+      _erreur = 'Erreur réseau : ${e.toString()}';
+    }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  void rechercher(String query) {
-    _searchQuery = query;
-    _appliquerFiltres();
-  }
+  // ─────────────────────────────────────────
+  // SUPPRIMER UN BIEN
+  // ─────────────────────────────────────────
+  Future<bool> supprimerBien(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/biens/$id'),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Accept': 'application/json',
+        },
+      );
 
-  void filtrerParVille(String ville) {
-    _villeFiltre = ville;
-    _appliquerFiltres();
-  }
-
- 
-
-  void filtrerParTypeLocation(TypeLocation? type) {
-    _typeLocationFiltre = type;
-    _appliquerFiltres();
-  }
-
-  void filtrerParPrixMax(double? prix) {
-    _prixMax = prix;
-    _appliquerFiltres();
-  }
-
-  void _appliquerFiltres() {
-    _biensFiltres = _biens.where((b) {
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        if (!b.titre.toLowerCase().contains(q) &&
-            !b.localisation.ville.toLowerCase().contains(q) &&
-            !b.localisation.secteur.toLowerCase().contains(q)) {
-          return false;
-        }
+      if (response.statusCode == 200) {
+        _mesBiens.removeWhere((b) => b.id == id);
+        notifyListeners();
+        return true;
       }
-      if (_villeFiltre != 'Tous' && b.localisation.ville != _villeFiltre) {
-        return false;
-      }
-      if (_typeLocationFiltre != null && b.typeLocation != _typeLocationFiltre) {
-        return false;
-      }
-      if (_prixMax != null && b.prix > _prixMax!) {
-        return false;
-      }
-      return true;
-    }).toList();
-    notifyListeners();
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
-
-  void selectionnerBien(Bien bien) {
-    _bienSelectionne = bien;
-    notifyListeners();
-  }
-
-  List<Bien> getBiensProprietaire(int proprietaireId) {
-    return _biens.where((b) => b.proprietaireId == proprietaireId).toList();
-  }
-
 }

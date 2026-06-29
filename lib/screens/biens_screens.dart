@@ -6,7 +6,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../models/models.dart';
-import '../providers/providers.dart';
+import '../providers/bien_provider.dart';
 import '../services/api_service.dart';
 import '../theme.dart';
 import '../widgets/widgets.dart';
@@ -614,9 +614,8 @@ class _NotationBailleurWidgetState extends State<NotationBailleurWidget> {
   }
 }
 
-// ================================================================
 // SHEET RÉSERVATION
-// ================================================================
+
 class _ReservationSheet extends StatefulWidget {
   final Bien bien;
   const _ReservationSheet({required this.bien});

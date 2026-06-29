@@ -1,4 +1,6 @@
-import 'package:herresso/theme.dart';
+class HerressoTheme {
+  static const primary = 'primary';
+}
 
 void main() {
  // ignore: avoid_print

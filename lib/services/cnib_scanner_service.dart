@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 class CnibInfo {
@@ -29,12 +30,28 @@ class CnibInfo {
   bool get estVide => numero == null && nom == null && prenom == null && dateNaissance == null;
 }
 
+/// Exception levée quand le scan n'est pas disponible sur la plateforme actuelle
+/// (ex : Flutter Web, qui ne supporte pas Google ML Kit).
+class ScanIndisponibleException implements Exception {
+  final String message;
+  ScanIndisponibleException([this.message = 'Le scan automatique de la CNIB n\'est pas disponible sur le web. Veuillez remplir les champs manuellement.']);
+  @override
+  String toString() => message;
+}
+
 class CnibScannerService {
-  static final _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  static final _textRecognizer = kIsWeb ? null : TextRecognizer(script: TextRecognitionScript.latin);
 
   static Future<CnibInfo> scanner(File photo) async {
+    // Google ML Kit n'a pas d'implémentation web : on bloque proprement
+    // au lieu de laisser planter l'appli. À terme, cet appel sera remplacé
+    // par une requête vers une API REST d'OCR (qui marchera sur toutes les plateformes).
+    if (kIsWeb) {
+      throw ScanIndisponibleException();
+    }
+
     final inputImage = InputImage.fromFile(photo);
-    final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+    final RecognizedText recognizedText = await _textRecognizer!.processImage(inputImage);
     final texte = recognizedText.text;
     final lignes = texte.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
@@ -212,6 +229,6 @@ class CnibScannerService {
   }
 
   static void dispose() {
-    _textRecognizer.close();
+    _textRecognizer?.close();
   }
 }

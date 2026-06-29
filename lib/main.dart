@@ -4,40 +4,41 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'models/models.dart';
-import 'providers/providers.dart';
+import 'providers/auth_provider.dart';
+import 'providers/bien_provider.dart';
+import 'providers/proprietaire_provider.dart';
 import 'theme.dart';
 import 'screens/auth_screens.dart';
 import 'screens/home_screen.dart';
 import 'screens/biens_screens.dart';
 import 'screens/profile_screen.dart';
 import 'services/notification_service.dart';
+
 // Removed unused import: 'screens/proprietaire_screens.dart'
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Charge la session sauvegardée
   final authProvider = AuthProvider();
   await authProvider.chargerSession();
-  
+
   try {
     await NotificationService.init();
   } catch (e) {
     debugPrint('Firebase non configuré : $e');
   }
-  
+
   await initializeDateFormatting('fr_FR', null);
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   runApp(HerressoApp(authProvider: authProvider));
 }
 class HerressoApp extends StatelessWidget {
   final AuthProvider authProvider;
-  
+
   const HerressoApp({super.key, required this.authProvider});
 
   @override
@@ -69,9 +70,16 @@ class AppNavigator extends StatefulWidget {
 }
 
 class _AppNavigatorState extends State<AppNavigator> {
-  _AppPage _page = _AppPage.login;
+  late _AppPage _page;
   int _navIndex = 0;
   Bien? _selectedBien;
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = context.read<AuthProvider>();
+    _page = authProvider.isLoggedIn ? _AppPage.main : _AppPage.login;
+  }
 
   void _goTo(_AppPage page) => setState(() => _page = page);
 

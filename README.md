@@ -69,7 +69,7 @@ flutter run
 - [x] Système de notation (étoiles)
 
 ### Réservations & Visites
-- [x] Réservation court terme (avec dates et calcul prix)
+- [x] Réservation sejour (avec dates et calcul prix)
 - [x] Choix du mode de paiement (Orange Money, Moov Money, Coris Money)
 - [x] Demande de visite avec calendrier
 

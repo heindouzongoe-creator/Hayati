@@ -1,22 +1,15 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:herresso/main.dart';
-import 'package:herresso/providers/providers.dart';
+import 'package:herresso/providers/auth_provider.dart';
 
 void main() {
   testWidgets('App launches smoke test', (WidgetTester tester) async {
-    // Build the Herresso app and trigger a frame.
-    await tester.pumpWidget(HerressoApp(authProvider: AuthProvider()));
 
-    // Verify that the app renders a MaterialApp.
+    final authProvider = AuthProvider();
+
+    await tester.pumpWidget(HerressoApp(authProvider: authProvider));
+
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(find.byType(Scaffold), findsWidgets);
   });
