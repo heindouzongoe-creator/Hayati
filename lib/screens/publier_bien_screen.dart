@@ -9,6 +9,7 @@ import '../providers/providers.dart';
 import '../services/api_service.dart';
 import '../theme.dart';
 import '../models/models.dart';
+import '../widgets/caracteristiques_bien.dart';
 
 class PublierBienScreen extends StatefulWidget {
   final VoidCallback? onPublished;
@@ -37,6 +38,7 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
   bool   _eau          = true;
   bool   _electricite  = true;
   bool   _courCommune  = false;
+  bool   _salleEau     = false;
 
   final List<File>      _photos      = [];
   final List<Uint8List> _photosBytes = [];
@@ -462,47 +464,19 @@ List<Map<String, dynamic>> get _typesBienFiltres {
               ),
               const SizedBox(height: 24),
 
-              // ── CARACTÉRISTIQUES ──
-              _sectionTitre('Caractéristiques'),
-              Row(children: [
-                Expanded(child: _compteur(
-                  label: 'Chambres',
-                  icone: Icons.bed_outlined,
-                  value: _chambres,
-                  onMoins: () { if (_chambres > 0) setState(() => _chambres--); },
-                  onPlus: () => setState(() => _chambres++),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: _compteur(
-                  label: 'Salle de bain',
-                  icone: Icons.bathroom_outlined,
-                  value: _sallesDeBain,
-                  onMoins: () { if (_sallesDeBain > 0) setState(() => _sallesDeBain--); },
-                  onPlus: () => setState(() => _sallesDeBain++),
-                )),
-              ]),
-              const SizedBox(height: 24),
-
-              // ── COUR ──
-              _sectionTitre('Type de cour'),
-              Row(children: [
-                Expanded(child: _toggleCard(
-                  label: 'Cour unique',
-                  icone: Icons.lock_outline,
-                  selected: !_courCommune,
-                  onTap: () => setState(() => _courCommune = false),
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: _toggleCard(
-                  label: 'Cour commune',
-                  icone: Icons.people_outline,
-                  selected: _courCommune,
-                  onTap: () => setState(() => _courCommune = true),
-                )),
-              ]),
-              const SizedBox(height: 24),
-
-              // ── ÉQUIPEMENTS ──
+            
+             caracteristiqueBien(
+              typeBien: _typeBien,
+              chambres: _chambres,
+              onChambresChanged: (v) => setState(() => _chambres = v),
+              sallesDeBain: _sallesDeBain,
+              onSallesDeBainChanged: (v) => setState(() => _sallesDeBain = v),
+              courCommune: _courCommune,
+              onCourCommuneChanged: (v) => setState(() => _courCommune = v),
+              salleEau: _salleEau,
+              onSalleEauChanged: (v) => setState(() => _salleEau = v),
+            ),
+          
               _sectionTitre('Équipements & services'),
               Wrap(spacing: 8, runSpacing: 8, children: [
                 _chip(label: 'Eau',          icone: Icons.water_drop_outlined, value: _eau,         onTap: () => setState(() => _eau = !_eau)),
@@ -610,7 +584,7 @@ List<Map<String, dynamic>> get _typesBienFiltres {
                 const SizedBox(height: 24),
               ],
 
-              // ── ERREUR ──
+              
               Consumer<ProprietaireProvider>(builder: (_, p, __) {
                 if (p.erreur == null) return const SizedBox.shrink();
                 return Container(
@@ -629,7 +603,7 @@ List<Map<String, dynamic>> get _typesBienFiltres {
                 );
               }),
 
-              // ── BOUTON PUBLIER ──
+            
               Consumer<ProprietaireProvider>(builder: (_, p, __) => SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -654,7 +628,7 @@ List<Map<String, dynamic>> get _typesBienFiltres {
     );
   }
 
-  // WIDGETS HELPERS
+
 
   Widget _sectionTitre(String titre, {String? subtitle}) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
