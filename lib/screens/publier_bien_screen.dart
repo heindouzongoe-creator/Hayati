@@ -465,7 +465,7 @@ List<Map<String, dynamic>> get _typesBienFiltres {
               const SizedBox(height: 24),
 
             
-             caracteristiqueBien(
+            CaracteristiquesBien(
               typeBien: _typeBien,
               chambres: _chambres,
               onChambresChanged: (v) => setState(() => _chambres = v),
@@ -772,57 +772,9 @@ List<Map<String, dynamic>> get _typesBienFiltres {
   },
 );
 
-  Widget _compteur({required String label, required IconData icone, required int value, required VoidCallback onMoins, required VoidCallback onPlus}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: HerressoTheme.border),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(children: [
-        Row(children: [
-          Icon(icone, size: 16, color: HerressoTheme.textSecondary),
-          const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 12, color: HerressoTheme.textSecondary)),
-        ]),
-        const SizedBox(height: 6),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          GestureDetector(onTap: onMoins, child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
-            child: const Icon(Icons.remove, size: 16),
-          )),
-          Text('$value', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          GestureDetector(onTap: onPlus, child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: HerressoTheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: const Icon(Icons.add, size: 16, color: HerressoTheme.primary),
-          )),
-        ]),
-      ]),
-    );
-  }
+  
 
-  Widget _toggleCard({required String label, required IconData icone, required bool selected, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? HerressoTheme.primary : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: selected ? HerressoTheme.primary : HerressoTheme.border, width: selected ? 2 : 1),
-        ),
-        child: Column(children: [
-          Icon(icone, size: 22, color: selected ? Colors.white : HerressoTheme.primary),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? Colors.white : HerressoTheme.textPrimary)),
-        ]),
-      ),
-    );
-  }
+  
 
   Widget _chip({required String label, required IconData icone, required bool value, required VoidCallback onTap}) {
     return GestureDetector(
