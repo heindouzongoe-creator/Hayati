@@ -49,19 +49,27 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
   ];
 
   static const _typesBien = [
-    {'value': 'villa',            'label': 'Villa',            'icon': Icons.house},
-    {'value': 'residence',        'label': 'Résidence',        'icon': Icons.apartment},
-    {'value': 'auberge',          'label': 'Auberge',          'icon': Icons.hotel},
-    {'value': 'hotel',            'label': 'Hôtel',            'icon': Icons.business},
-    {'value': 'chambre',          'label': 'Chambre',          'icon': Icons.bed},
-    {'value': 'local_commercial', 'label': 'Local commercial', 'icon': Icons.store},
-  ];
+  {'value': 'villa',            'label': 'Villa',            'icon': Icons.house},
+  {'value': 'residence',        'label': 'Résidence',        'icon': Icons.apartment},
+  {'value': 'auberge',          'label': 'Auberge',          'icon': Icons.hotel},
+  {'value': 'hotel',            'label': 'Hôtel',            'icon': Icons.business},
+  {'value': 'local_commercial', 'label': 'Local commercial', 'icon': Icons.store},
+];
 
-  static const _typesLocation = [
-    {'value': 'long_terme', 'label': 'Long terme', 'icon': Icons.calendar_month},
-    {'value': 'sejour',     'label': 'Séjour',     'icon': Icons.night_shelter},
-  ];
+static const _typesLocation = [
+  {'value': 'long_terme', 'label': 'Long terme', 'icon': Icons.calendar_month},
+  {'value': 'sejour',     'label': 'Séjour',     'icon': Icons.night_shelter},
+];
 
+List<Map<String, dynamic>> get _typesBienFiltres {
+  if (_typeLocation == 'long_terme') {
+    return _typesBien.where((t) => t['value'] == 'villa' || t['value'] == 'local_commercial').toList() ;
+  } else {
+    return _typesBien.where((t) =>
+      t['value'] == 'residence' || t['value'] == 'auberge' || t['value'] == 'hotel'
+    ).toList();
+  }
+}
   @override
   void dispose() {
     _titreCtrl.dispose(); _descCtrl.dispose(); _secteurCtrl.dispose();
@@ -133,13 +141,15 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
 
   final typesHotel = [
     {'value': 'standard', 'label': 'Standard'},
-    {'value': 'suite',    'label': 'Suite'},
     {'value': 'vip',      'label': 'VIP'},
+    {'value': 'suite',    'label': 'Suite'},
+    {'value': 'Luxueuse',    'label': 'Suite luxueuse'},
   ];
 
   final typesAuberge = [
     {'value': 'dortoir', 'label': 'Dortoir'},
-    {'value': 'privee',  'label': 'Chambre privée'},
+    {'value': 'individuelle',  'label': 'individuelle'},
+    {'value': 'famille', 'label': 'Famille'},
   ];
 
   final types = _typeBien == 'hotel' ? typesHotel : typesAuberge;
@@ -250,7 +260,7 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
                 ),
               ],
 
-              // Auberge : petit dej seulement
+              // Auberge 
               if (_typeBien == 'auberge') ...[
                 const Text('Repas inclus', style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
@@ -316,11 +326,11 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
       ville:              _ville,
       secteur:            _secteurCtrl.text.trim(),
       quartier:           _quartierCtrl.text.trim(),
-      prix:               double.tryParse(_prixCtrl.text.trim()) ?? 0,
       typeLocation:       _typeLocation,
       typeBien:           _typeBien,
       nombreChambres:     _chambres,
       nombreSallesDeBain: _sallesDeBain,
+      prix:               double.tryParse(_prixCtrl.text.trim()) ?? 0,
       climatisation:      _clim,
       wifi:               _wifi,
       parking:            _parking,
@@ -389,7 +399,7 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
               _sectionTitre('Informations générales'),
               TextFormField(
                 controller: _titreCtrl,
-                decoration: const InputDecoration(labelText: 'Titre *', prefixIcon: Icon(Icons.title)),
+                decoration: const InputDecoration(labelText: 'Titre *',),
                 validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
               const SizedBox(height: 12),
@@ -405,24 +415,19 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
               ),
               const SizedBox(height: 24),
 
-              // ── TYPE DE BIEN ──
-              _sectionTitre('Type de bien'),
-              _grilleSelection(
-                items: _typesBien,
-                initialValue: _typeBien,
-                onSelect: (v) => setState(() => _typeBien = v),
-              ),
-              const SizedBox(height: 24),
+                          // ── TYPE DE LOCATION ──
+            _sectionTitre('Type de location'),
+            _dropdownTypeLocation(),
+            const SizedBox(height: 24),
 
-              // ── TYPE DE LOCATION ──
-              _sectionTitre('Type de location'),
-              _grilleSelection(
-                items: _typesLocation,
-                initialValue: _typeLocation,
-                onSelect: (v) => setState(() => _typeLocation = v),
-                colonnes: 2,
-              ),
-              const SizedBox(height: 24),
+            // ── TYPE DE BIEN ──
+            _sectionTitre('Type de bien'),
+            _grilleSelection(
+              items: _typesBienFiltres,
+              initialValue: _typeBien,
+              onSelect: (v) => setState(() => _typeBien = v),
+            ),
+            const SizedBox(height: 24),
 
               // ── LOCALISATION ──
               _sectionTitre('Localisation'),
@@ -430,15 +435,16 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _secteurCtrl,
-                decoration: const InputDecoration(labelText: 'Secteur *', prefixIcon: Icon(Icons.location_city)),
+                decoration: const InputDecoration(labelText: 'Secteur *', ),
                 validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
               ),
-              /*const SizedBox(height: 12),
+              
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _quartierCtrl,
-                decoration: const InputDecoration(labelText: 'Quartier *', prefixIcon: Icon(Icons.location_on_outlined)),
+                decoration: const InputDecoration(labelText: 'Quartier *', ),
                 validator: (v) => v == null || v.isEmpty ? 'Requis' : null,
-              ),*/
+              ),
               const SizedBox(height: 24),
 
               // ── PRIX ──
@@ -648,10 +654,7 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
     );
   }
 
-  
-
   // WIDGETS HELPERS
-
 
   Widget _sectionTitre(String titre, {String? subtitle}) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
@@ -770,6 +773,30 @@ class _PublierBienScreenState extends State<PublierBienScreen> {
     items: _villes.map((v) => DropdownMenuItem(value: v, child: Text(v))).toList(),
     onChanged: (v) => setState(() => _ville = v!),
   );
+  Widget _dropdownTypeLocation() => DropdownButtonFormField<String>(
+  initialValue: _typeLocation,
+  decoration: const InputDecoration(
+    labelText: 'Type de location',
+    prefixIcon: Icon(Icons.calendar_month),
+  ),
+  items: _typesLocation.map((t) => DropdownMenuItem(
+    value: t['value'] as String,
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(t['icon'] as IconData, size: 18, color: HerressoTheme.primary),
+        const SizedBox(width: 8),
+        Text(t['label'] as String),
+      ],
+    ),
+  )).toList(),
+  onChanged: (v) {
+    setState(() {
+      _typeLocation = v!;
+      _typeBien = _typesBienFiltres.first['value'] as String;
+    });
+  },
+);
 
   Widget _compteur({required String label, required IconData icone, required int value, required VoidCallback onMoins, required VoidCallback onPlus}) {
     return Container(
