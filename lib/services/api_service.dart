@@ -221,11 +221,11 @@ static String get baseUrl => kIsWeb ? _baseUrlWeb : _baseUrlMobile;
     request.fields['type_bien'] = typeBien;
     request.fields['nombre_chambres'] = nombreChambres.toString();
     request.fields['nombre_salles_de_bain'] = nombreSallesDeBain.toString();
-    request.fields['climatisation'] = (climatisation ?? false).toString();
-    request.fields['wifi'] = (wifi ?? false).toString();
-    request.fields['parking'] = (parking ?? false).toString();
-    request.fields['eau'] = (eau ?? true).toString();
-    request.fields['electricite'] = (electricite ?? true).toString();
+    request.fields['climatisation'] = (climatisation == true) ? '1' : '0';
+    request.fields['wifi']          = (wifi == true) ? '1' : '0';
+    request.fields['parking']       = (parking == true) ? '1' : '0';
+    request.fields['eau']           = (eau == true) ? '1' : '0';
+    request.fields['electricite']   = (electricite == true) ? '1' : '0';
 
     if (photos != null) {
       for (var i = 0; i < photos.length; i++) {

@@ -51,7 +51,7 @@ class AuthProvider extends ChangeNotifier {
  Future<void> chargerSession() async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('token');
-  print('TOKEN EN MEMOIRE: $token'); // ← ajouter cette ligne
+  print('TOKEN EN MEMOIRE: $token'); 
   if (token != null) {
     ApiService.setToken(token);
     try {
@@ -104,10 +104,10 @@ class AuthProvider extends ChangeNotifier {
         id: u['id'],
         nom: u['nom'],
         prenom: u['prenom'],
-        email: u['email'],
+        email: u['email'] ?? '',
         telephone: u['telephone'] ?? '',
         role: role,
-        dateCreation: DateTime.parse(u['created_at']),
+        dateCreation: DateTime.parse(u['created_at'] ?? DateTime.now().toIso8601String()),
       );
       _isLoading = false;
       notifyListeners();

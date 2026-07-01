@@ -14,7 +14,6 @@ class ProprietaireProvider extends ChangeNotifier {
   String? get erreur => _erreur;
   List<Bien> get mesBiens => _mesBiens;
 
-  
   // PUBLIER UN BIEN
  
   Future<bool> publierBien({
@@ -35,7 +34,8 @@ class ProprietaireProvider extends ChangeNotifier {
     required bool electricite,
     List<File>? photos,
     List<Uint8List>? photosBytes,
-  }) async {
+  }) 
+  async {
     _isLoading = true;
     _erreur = null;
     notifyListeners();
@@ -74,15 +74,14 @@ class ProprietaireProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
+      debugPrint('ERREUR PUBLIER: $e');
       _erreur = 'Erreur de connexion au serveur';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
-
   // MES BIENS
-  
   Future<void> chargerMesBiens() async {
     _isLoading = true;
     notifyListeners();
@@ -100,8 +99,6 @@ class ProprietaireProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
-
-  
   // SUPPRIMER UN BIEN
   Future<bool> supprimerBien(int id) async {
     try {

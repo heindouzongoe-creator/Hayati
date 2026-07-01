@@ -194,7 +194,7 @@ class Reservation {
       dateDebut: DateTime.parse(json['date_debut']),
       dateFin: DateTime.parse(json['date_fin']),
       montantTotal: (json['montant_total'] as num).toDouble(),
-      modePaiement: json['mode_paiement'] ?? 'orange_money',
+      modePaiement: json['mode_paiement'] ?? 'ligdicash',
       statut: _parseStatut(json['statut']),
       bien: json['bien'] != null ? Bien.fromJson(json['bien']) : null,
     );

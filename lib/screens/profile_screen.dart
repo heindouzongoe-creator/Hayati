@@ -615,9 +615,9 @@ class _PublierBienSheetState extends State<_PublierBienSheet> {
       // Cour
       _sectionTitre('Type de cour'),
       Row(children: [
-        Expanded(child: _toggleCard(label: 'Cour unique', icone: Icons.lock_outline, selected: !_courCommune, onTap: () => setState(() => _courCommune = false))),
+        Expanded(child: _toggleCard(label: 'Cour unique', icone: Icons.lock_outlined, selected: !_courCommune, onTap: () => setState(() => _courCommune = false))),
         const SizedBox(width: 12),
-        Expanded(child: _toggleCard(label: 'Cour commune', icone: Icons.people_outline, selected: _courCommune, onTap: () => setState(() => _courCommune = true))),
+        Expanded(child: _toggleCard(label: 'Cour commune', icone: Icons.people_outlined, selected: _courCommune, onTap: () => setState(() => _courCommune = true))),
       ]),
       const SizedBox(height: 24),
 
